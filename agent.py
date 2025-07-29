@@ -1,22 +1,24 @@
 from langchain.agents import create_openai_functions_agent
 from langchain_openai import ChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.tools import BaseTool
 from typing import List, Dict, Any
 import logging
-from config import OPENAI_API_KEY, VERSION
+from config import QWEN_API_KEY, QWEN_BASE_URL, QWEN_MODEL, VERSION
 from dify_client import DifyClient
 from tools import DifyChatTool, GetTimeTool, GetUserInfoTool, CalculatorTool
 
 logger = logging.getLogger(__name__)
 
 class MindBotAgent:
-    def __init__(self, openai_api_key: str = None):
-        self.openai_api_key = openai_api_key or OPENAI_API_KEY
+    def __init__(self, qwen_api_key: str = None):
+        self.qwen_api_key = qwen_api_key or QWEN_API_KEY
         self.llm = ChatOpenAI(
-            model="gpt-3.5-turbo",
+            model=QWEN_MODEL,
             temperature=0.7,
-            openai_api_key=self.openai_api_key
+            openai_api_key=self.qwen_api_key,
+            openai_api_base=QWEN_BASE_URL
         )
         
         # Initialize Dify client
@@ -59,7 +61,12 @@ class MindBotAgent:
         Always be helpful and provide clear, concise responses.
         If you encounter an error, try to provide a helpful fallback response."""
         
-        prompt = [SystemMessage(content=system_prompt)]
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}"),
+            MessagesPlaceholder(variable_name="agent_scratchpad"),
+        ])
         
         agent = create_openai_functions_agent(
             llm=self.llm,
@@ -67,7 +74,7 @@ class MindBotAgent:
             prompt=prompt
         )
         
-        logger.info("Agent created with OpenAI functions")
+        logger.info("Agent created with Qwen functions")
         return agent
     
     async def process_message(self, message: str, context: Dict[str, Any] = None) -> str:

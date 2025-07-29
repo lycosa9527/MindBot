@@ -13,7 +13,7 @@ class DifyChatTool(BaseTool):
     
     def __init__(self, dify_client):
         super().__init__()
-        self.dify_client = dify_client
+        self._dify_client = dify_client
     
     def _run(self, query: str) -> str:
         """Run the tool synchronously"""
@@ -27,13 +27,13 @@ class DifyChatTool(BaseTool):
                 return "Error: This tool should be used in async context"
             except RuntimeError:
                 # No running loop, safe to use asyncio.run()
-                return asyncio.run(self.dify_client.chat_completion(query))
+                return asyncio.run(self._dify_client.chat_completion(query))
         except Exception as e:
             return f"Error running Dify chat tool: {str(e)}"
     
     async def _arun(self, query: str) -> str:
         """Run the tool asynchronously"""
-        return await self.dify_client.chat_completion(query)
+        return await self._dify_client.chat_completion(query)
 
 class GetTimeTool(BaseTool):
     name: str = "get_time"
