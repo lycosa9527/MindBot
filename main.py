@@ -6,6 +6,7 @@ from config import DEBUG_MODE, VERSION, BUILD_DATE
 from dingtalk_client import MindBotDingTalkClient
 from agent import MindBotAgent
 from debug import run_diagnostics
+from banner import display_banner
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,9 @@ class MindBotStreamApp:
     async def initialize(self):
         """Initialize the application components"""
         try:
+            # Display banner first
+            display_banner()
+            
             logger.info(f"Initializing MindBot {VERSION} ({BUILD_DATE}) Stream Application...")
             
             # Initialize agent
