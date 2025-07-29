@@ -1,4 +1,4 @@
-from dingtalk_stream import DingTalkStreamClient
+from dingtalk_stream import DingTalkStreamClient, Credential
 import logging
 from config import DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE, VERSION
 
@@ -6,9 +6,14 @@ logger = logging.getLogger(__name__)
 
 class MindBotDingTalkClient:
     def __init__(self, agent_handler=None):
-        self.client = DingTalkStreamClient(
+        # Create credential object
+        credential = Credential(
             client_id=DINGTALK_CLIENT_ID,
             client_secret=DINGTALK_CLIENT_SECRET
+        )
+        
+        self.client = DingTalkStreamClient(
+            credential=credential
         )
         self.agent_handler = agent_handler
         self.debug_logger = DebugLogger("DingTalkStream")
