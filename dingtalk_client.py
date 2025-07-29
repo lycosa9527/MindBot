@@ -20,9 +20,6 @@ class MindBotDingTalkClient:
         self.debug_logger = DebugLogger("DingTalkStream")
         self.running = False
         
-        # Register message handler
-        self.client.on_chatbot_message = self._handle_message
-        
         logger.info(f"DingTalk Stream Client {VERSION} initialized")
     
     async def _handle_message(self, message):
@@ -76,6 +73,9 @@ class MindBotDingTalkClient:
         try:
             self.debug_logger.log_info(f"Starting DingTalk Stream Client {VERSION}...")
             self.running = True
+            
+            # Register message handler after initialization
+            self.client.on_chatbot_message = self._handle_message
             
             # Start the client directly without asyncio.run()
             await self.client.start_forever()

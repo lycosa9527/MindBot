@@ -16,24 +16,15 @@ class DifyChatTool(BaseTool):
         self._dify_client = dify_client
     
     def _run(self, query: str) -> str:
-        """Run the tool synchronously"""
-        import asyncio
-        try:
-            # Check if there's already a running event loop
-            try:
-                loop = asyncio.get_running_loop()
-                # If we're in an async context, we can't use asyncio.run()
-                # This is a fallback for sync contexts only
-                return "Error: This tool should be used in async context"
-            except RuntimeError:
-                # No running loop, safe to use asyncio.run()
-                return asyncio.run(self._dify_client.chat_completion(query))
-        except Exception as e:
-            return f"Error running Dify chat tool: {str(e)}"
+        """Run the tool synchronously - not recommended for async clients"""
+        return "Error: This tool requires async context. Please use the async version."
     
     async def _arun(self, query: str) -> str:
         """Run the tool asynchronously"""
-        return await self._dify_client.chat_completion(query)
+        try:
+            return await self._dify_client.chat_completion(query)
+        except Exception as e:
+            return f"Error running Dify chat tool: {str(e)}"
 
 class GetTimeTool(BaseTool):
     name: str = "get_time"

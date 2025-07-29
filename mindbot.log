@@ -147,3 +147,19 @@
 2025-07-30 03:30:30,392 - config - DEBUG - Qwen Model: qwen-turbo-latest
 2025-07-30 03:30:30,393 - config - DEBUG - OpenAI API Key: NOT SET
 2025-07-30 03:30:30,394 - dingtalk_client - INFO - DingTalk Stream Client v0.1 initialized
+2025-07-30 03:33:37,522 - config - INFO - MindBot v0.1 (2024-01-20) - Configuration loaded successfully
+2025-07-30 03:33:37,522 - config - DEBUG - DingTalk Client ID: dingr6bg0cj9ylmlpuqz
+2025-07-30 03:33:37,523 - config - DEBUG - Dify API Key: ***
+2025-07-30 03:33:37,523 - config - DEBUG - Dify Base URL: http://dify.mindspringedu.com/v1
+2025-07-30 03:33:37,523 - config - DEBUG - Qwen API Key: ***
+2025-07-30 03:33:37,523 - config - DEBUG - Qwen Base URL: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+2025-07-30 03:33:37,523 - config - DEBUG - Qwen Model: qwen-turbo-latest
+2025-07-30 03:33:37,524 - config - DEBUG - OpenAI API Key: NOT SET
+2025-07-30 03:33:43,048 - config - INFO - MindBot v0.1 (2024-01-20) - Configuration loaded successfully
+2025-07-30 03:33:43,049 - config - DEBUG - DingTalk Client ID: dingr6bg0cj9ylmlpuqz
+2025-07-30 03:33:43,049 - config - DEBUG - Dify API Key: ***
+2025-07-30 03:33:43,049 - config - DEBUG - Dify Base URL: http://dify.mindspringedu.com/v1
+2025-07-30 03:33:43,050 - config - DEBUG - Qwen API Key: ***
+2025-07-30 03:33:43,050 - config - DEBUG - Qwen Base URL: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+2025-07-30 03:33:43,050 - config - DEBUG - Qwen Model: qwen-turbo-latest
+2025-07-30 03:33:43,051 - config - DEBUG - OpenAI API Key: NOT SET

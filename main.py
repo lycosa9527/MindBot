@@ -47,8 +47,8 @@ class MindBotStreamApp:
         """Setup signal handlers for graceful shutdown"""
         def signal_handler(signum, frame):
             logger.info(f"Received signal {signum}, shutting down gracefully...")
-            # Create a task to stop the application
-            asyncio.create_task(self.stop())
+            # Set running flag to False to trigger shutdown
+            self.running = False
             
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
@@ -105,6 +105,7 @@ class MindBotStreamApp:
             
             # Start DingTalk stream client
             logger.info("Starting DingTalk Stream Client...")
+            self.running = True
             await self.dingtalk_client.start()
             
         except Exception as e:

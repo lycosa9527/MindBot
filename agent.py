@@ -91,11 +91,14 @@ class MindBotAgent:
             if not message or not message.strip():
                 return "I'm sorry, I didn't receive any message. Please try again."
             
+            # Store original message for fallback
+            original_message = message.strip()
+            
             # Enhance message with context
             user_id = context.get("user_id", "unknown") if context else "unknown"
-            enhanced_message = f"User {user_id}: {message.strip()}"
+            enhanced_message = f"User {user_id}: {original_message}"
             
-            logger.info(f"Processing message: {message[:50]}...")
+            logger.info(f"Processing message: {original_message[:50]}...")
             
             # Use agent executor to process the message
             result = await self.agent_executor.ainvoke({
@@ -112,9 +115,9 @@ class MindBotAgent:
             
         except Exception as e:
             logger.error(f"Error in agent processing: {str(e)}")
-            # Fallback to direct Dify chat
+            # Fallback to direct Dify chat using original message
             try:
-                fallback_response = await self.dify_client.chat_completion(message)
+                fallback_response = await self.dify_client.chat_completion(original_message)
                 logger.info("Used fallback Dify response")
                 return fallback_response
             except Exception as fallback_error:
