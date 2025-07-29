@@ -1,26 +1,32 @@
 from dingtalk_stream import DingTalkStreamClient, Credential
 import logging
 import asyncio
+import traceback
 from config import DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE, VERSION
 
 logger = logging.getLogger(__name__)
 
 class MindBotDingTalkClient:
     def __init__(self, agent_handler=None):
-        # Create credential object
-        credential = Credential(
-            client_id=DINGTALK_CLIENT_ID,
-            client_secret=DINGTALK_CLIENT_SECRET
-        )
-        
-        self.client = DingTalkStreamClient(
-            credential=credential
-        )
-        self.agent_handler = agent_handler
-        self.debug_logger = DebugLogger("DingTalkStream")
-        self.running = False
-        
-        logger.info(f"DingTalk Stream Client {VERSION} initialized")
+        try:
+            # Create credential object
+            credential = Credential(
+                client_id=DINGTALK_CLIENT_ID,
+                client_secret=DINGTALK_CLIENT_SECRET
+            )
+            
+            self.client = DingTalkStreamClient(
+                credential=credential
+            )
+            self.agent_handler = agent_handler
+            self.debug_logger = DebugLogger("DingTalkStream")
+            self.running = False
+            
+            logger.info(f"DingTalk Stream Client {VERSION} initialized")
+        except Exception as e:
+            logger.error(f"Error initializing DingTalk client: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise
     
     async def _handle_message(self, message):
         """Handle incoming DingTalk messages"""
@@ -59,6 +65,7 @@ class MindBotDingTalkClient:
             
         except Exception as e:
             self.debug_logger.log_error(f"Error handling message: {str(e)}")
+            self.debug_logger.log_error(f"Traceback: {traceback.format_exc()}")
             # Send error response
             try:
                 await self.client.reply_message(
@@ -83,21 +90,30 @@ class MindBotDingTalkClient:
             
             def run_client():
                 try:
+                    self.debug_logger.log_info("Creating new event loop for DingTalk client...")
                     # Create a new event loop for the client
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
+                    self.debug_logger.log_info("Starting DingTalk client with start_forever()...")
                     loop.run_until_complete(self.client.start_forever())
                 except Exception as e:
                     self.debug_logger.log_error(f"Client thread error: {str(e)}")
+                    self.debug_logger.log_error(f"Traceback: {traceback.format_exc()}")
                 finally:
-                    loop.close()
+                    try:
+                        loop.close()
+                    except Exception as close_error:
+                        self.debug_logger.log_error(f"Error closing loop: {str(close_error)}")
             
             # Start client in a separate thread
             self.client_thread = threading.Thread(target=run_client, daemon=True)
+            self.debug_logger.log_info("Starting DingTalk client thread...")
             self.client_thread.start()
+            self.debug_logger.log_info("DingTalk client thread started successfully")
                 
         except Exception as e:
             self.debug_logger.log_error(f"Error starting stream client: {str(e)}")
+            self.debug_logger.log_error(f"Traceback: {traceback.format_exc()}")
             self.running = False
             raise
     

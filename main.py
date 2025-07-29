@@ -2,6 +2,7 @@ import asyncio
 import signal
 import sys
 import logging
+import traceback
 from config import DEBUG_MODE, VERSION, BUILD_DATE
 from dingtalk_client import MindBotDingTalkClient
 from agent import MindBotAgent
@@ -25,10 +26,12 @@ class MindBotStreamApp:
             logger.info(f"Initializing MindBot {VERSION} ({BUILD_DATE}) Stream Application...")
             
             # Initialize agent
+            logger.info("Initializing agent...")
             self.agent = MindBotAgent()
             logger.info("Agent initialized successfully")
             
             # Initialize DingTalk stream client
+            logger.info("Initializing DingTalk stream client...")
             self.dingtalk_client = MindBotDingTalkClient(
                 agent_handler=self.handle_message
             )
@@ -41,6 +44,7 @@ class MindBotStreamApp:
             
         except Exception as e:
             logger.error(f"Error during initialization: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             raise
     
     def setup_signal_handlers(self):
@@ -70,6 +74,7 @@ class MindBotStreamApp:
             
         except Exception as e:
             logger.error(f"Error handling message: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return "I'm sorry, I encountered an error processing your message. Please try again."
     
     async def run_diagnostics(self):
@@ -87,6 +92,7 @@ class MindBotStreamApp:
             
         except Exception as e:
             logger.error(f"Diagnostics failed: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return False
     
     async def start(self):
@@ -108,8 +114,14 @@ class MindBotStreamApp:
             self.running = True
             await self.dingtalk_client.start()
             
+            # Keep the main thread alive
+            logger.info("Application started successfully. Waiting for messages...")
+            while self.running:
+                await asyncio.sleep(1)
+            
         except Exception as e:
             logger.error(f"Error in application: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             await self.stop()
             sys.exit(1)
     
@@ -127,11 +139,17 @@ class MindBotStreamApp:
             
         except Exception as e:
             logger.error(f"Error stopping application: {str(e)}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
 
 async def main():
     """Main entry point"""
-    app = MindBotStreamApp()
-    await app.start()
+    try:
+        app = MindBotStreamApp()
+        await app.start()
+    except Exception as e:
+        logger.error(f"Fatal error in main: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     try:
@@ -140,4 +158,5 @@ if __name__ == "__main__":
         logger.info("Application interrupted by user")
     except Exception as e:
         logger.error(f"Application error: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         sys.exit(1) 
