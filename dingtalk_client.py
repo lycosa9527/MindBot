@@ -77,14 +77,8 @@ class MindBotDingTalkClient:
             self.debug_logger.log_info(f"Starting DingTalk Stream Client {VERSION}...")
             self.running = True
             
-            # Check if we're already in an event loop
-            try:
-                loop = asyncio.get_running_loop()
-                # We're in an event loop, just start the client
-                await self.client.start_forever()
-            except RuntimeError:
-                # No event loop running, create one
-                await self.client.start_forever()
+            # Start the client directly without asyncio.run()
+            await self.client.start_forever()
                 
         except Exception as e:
             self.debug_logger.log_error(f"Error starting stream client: {str(e)}")

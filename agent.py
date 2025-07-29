@@ -63,7 +63,6 @@ class MindBotAgent:
         
         prompt = ChatPromptTemplate.from_messages([
             ("system", system_prompt),
-            MessagesPlaceholder(variable_name="chat_history"),
             ("human", "{input}"),
             MessagesPlaceholder(variable_name="agent_scratchpad"),
         ])
