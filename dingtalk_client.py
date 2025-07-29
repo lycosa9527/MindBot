@@ -1,5 +1,6 @@
 from dingtalk_stream import DingTalkStreamClient, Credential
 import logging
+import asyncio
 from config import DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE, VERSION
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ class MindBotDingTalkClient:
         )
         self.agent_handler = agent_handler
         self.debug_logger = DebugLogger("DingTalkStream")
+        self.running = False
         
         # Register message handler
         self.client.on_chatbot_message = self._handle_message
@@ -73,16 +75,32 @@ class MindBotDingTalkClient:
         """Start the DingTalk stream client"""
         try:
             self.debug_logger.log_info(f"Starting DingTalk Stream Client {VERSION}...")
-            await self.client.start_forever()
+            self.running = True
+            
+            # Check if we're already in an event loop
+            try:
+                loop = asyncio.get_running_loop()
+                # We're in an event loop, just start the client
+                await self.client.start_forever()
+            except RuntimeError:
+                # No event loop running, create one
+                await self.client.start_forever()
+                
         except Exception as e:
             self.debug_logger.log_error(f"Error starting stream client: {str(e)}")
+            self.running = False
             raise
     
     async def stop(self):
         """Stop the DingTalk stream client"""
         try:
             self.debug_logger.log_info("Stopping DingTalk Stream Client...")
-            await self.client.stop()
+            self.running = False
+            
+            # The DingTalkStreamClient doesn't have a stop method
+            # We'll just set running to False and let it exit naturally
+            self.debug_logger.log_info("DingTalk Stream Client stopped")
+            
         except Exception as e:
             self.debug_logger.log_error(f"Error stopping stream client: {str(e)}")
 

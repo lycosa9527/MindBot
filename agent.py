@@ -1,4 +1,4 @@
-from langchain.agents import create_openai_functions_agent
+from langchain.agents import create_openai_functions_agent, AgentExecutor
 from langchain_openai import ChatOpenAI
 from langchain.schema import SystemMessage, HumanMessage
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -27,8 +27,8 @@ class MindBotAgent:
         # Create tools
         self.tools = self._create_tools()
         
-        # Create agent
-        self.agent = self._create_agent()
+        # Create agent executor
+        self.agent_executor = self._create_agent()
         
         logger.info(f"MindBotAgent {VERSION} initialized successfully")
     
@@ -43,8 +43,8 @@ class MindBotAgent:
         logger.info(f"Created {len(tools)} tools for agent")
         return tools
     
-    def _create_agent(self):
-        """Create the LangChain agent with tools"""
+    def _create_agent(self) -> AgentExecutor:
+        """Create the LangChain agent executor with tools"""
         system_prompt = f"""You are MindBot {VERSION}, a helpful AI assistant integrated with DingTalk. 
         You have access to the following tools:
         - dify_chat: Use this to chat with Dify API for knowledge and workflow responses
@@ -74,11 +74,19 @@ class MindBotAgent:
             prompt=prompt
         )
         
-        logger.info("Agent created with Qwen functions")
-        return agent
+        # Create agent executor
+        agent_executor = AgentExecutor(
+            agent=agent,
+            tools=self.tools,
+            verbose=True,
+            handle_parsing_errors=True
+        )
+        
+        logger.info("Agent executor created with Qwen functions")
+        return agent_executor
     
     async def process_message(self, message: str, context: Dict[str, Any] = None) -> str:
-        """Process a message using the agent"""
+        """Process a message using the agent executor"""
         try:
             # Validate input
             if not message or not message.strip():
@@ -90,8 +98,8 @@ class MindBotAgent:
             
             logger.info(f"Processing message: {message[:50]}...")
             
-            # Use agent to process the message
-            result = await self.agent.ainvoke({
+            # Use agent executor to process the message
+            result = await self.agent_executor.ainvoke({
                 "input": enhanced_message
             })
             

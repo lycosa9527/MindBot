@@ -100,3 +100,22 @@
 2025-07-30 03:12:08,691 - config - DEBUG - Qwen Base URL: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
 2025-07-30 03:12:08,691 - config - DEBUG - Qwen Model: qwen-turbo-latest
 2025-07-30 03:12:08,692 - config - DEBUG - OpenAI API Key: NOT SET
+2025-07-30 03:16:59,478 - config - INFO - MindBot v0.1 (2024-01-20) - Configuration loaded successfully
+2025-07-30 03:16:59,479 - config - DEBUG - DingTalk Client ID: dingr6bg0cj9ylmlpuqz
+2025-07-30 03:16:59,479 - config - DEBUG - Dify API Key: ***
+2025-07-30 03:16:59,479 - config - DEBUG - Dify Base URL: http://dify.mindspringedu.com/v1
+2025-07-30 03:16:59,480 - config - DEBUG - Qwen API Key: ***
+2025-07-30 03:16:59,480 - config - DEBUG - Qwen Base URL: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+2025-07-30 03:16:59,481 - config - DEBUG - Qwen Model: qwen-turbo-latest
+2025-07-30 03:16:59,481 - config - DEBUG - OpenAI API Key: NOT SET
+2025-07-30 03:17:01,663 - agent - INFO - Created 4 tools for agent
+2025-07-30 03:17:01,735 - agent - INFO - Agent executor created with Qwen functions
+2025-07-30 03:17:01,736 - agent - INFO - MindBotAgent v0.1 initialized successfully
+2025-07-30 03:17:04,639 - config - INFO - MindBot v0.1 (2024-01-20) - Configuration loaded successfully
+2025-07-30 03:17:04,640 - config - DEBUG - DingTalk Client ID: dingr6bg0cj9ylmlpuqz
+2025-07-30 03:17:04,640 - config - DEBUG - Dify API Key: ***
+2025-07-30 03:17:04,641 - config - DEBUG - Dify Base URL: http://dify.mindspringedu.com/v1
+2025-07-30 03:17:04,641 - config - DEBUG - Qwen API Key: ***
+2025-07-30 03:17:04,642 - config - DEBUG - Qwen Base URL: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+2025-07-30 03:17:04,643 - config - DEBUG - Qwen Model: qwen-turbo-latest
+2025-07-30 03:17:04,643 - config - DEBUG - OpenAI API Key: NOT SET
