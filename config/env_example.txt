@@ -1,0 +1,21 @@
+# MindBot Environment Configuration
+# Copy this file to .env and fill in your actual values
+
+# DingTalk Configuration (Required)
+DINGTALK_CLIENT_ID=your_dingtalk_client_id
+DINGTALK_CLIENT_SECRET=your_dingtalk_client_secret
+DINGTALK_ROBOT_CODE=your_robot_code
+DINGTALK_ROBOT_NAME=MindBot_poc
+
+# Dify Configuration (Required)
+DIFY_API_KEY=your_dify_api_key
+DIFY_BASE_URL=http://your-dify-instance.com/v1
+
+# Qwen Configuration (Required)
+QWEN_API_KEY=your_qwen_api_key
+QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+QWEN_MODEL=qwen-turbo-latest
+
+# Optional Configuration
+DEBUG_MODE=true
+LOG_LEVEL=DEBUG 

@@ -1,7 +1,13 @@
+# Core dependencies
 dingtalk-stream>=0.24.2
-langchain>=0.1.0
-langchain-openai>=0.0.5
 python-dotenv>=1.0.0
 aiohttp>=3.8.0
-openai>=1.0.0
-dashscope>=1.14.0 
+
+# AI/LLM dependencies (only used in tools.py, not in main flow)
+langchain>=0.1.0
+
+# Security and certificates
+certifi>=2023.7.22
+
+# Development and debugging
+colorama>=0.4.6 
