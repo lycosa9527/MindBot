@@ -77,8 +77,24 @@ class MindBotDingTalkClient:
             # Register message handler after initialization
             self.client.on_chatbot_message = self._handle_message
             
-            # Start the client directly without asyncio.run()
-            await self.client.start_forever()
+            # Use start_forever in a separate thread to avoid event loop conflicts
+            import threading
+            import concurrent.futures
+            
+            def run_client():
+                try:
+                    # Create a new event loop for the client
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    loop.run_until_complete(self.client.start_forever())
+                except Exception as e:
+                    self.debug_logger.log_error(f"Client thread error: {str(e)}")
+                finally:
+                    loop.close()
+            
+            # Start client in a separate thread
+            self.client_thread = threading.Thread(target=run_client, daemon=True)
+            self.client_thread.start()
                 
         except Exception as e:
             self.debug_logger.log_error(f"Error starting stream client: {str(e)}")
@@ -91,8 +107,12 @@ class MindBotDingTalkClient:
             self.debug_logger.log_info("Stopping DingTalk Stream Client...")
             self.running = False
             
-            # The DingTalkStreamClient doesn't have a stop method
-            # We'll just set running to False and let it exit naturally
+            # Wait for client thread to finish if it exists
+            if hasattr(self, 'client_thread') and self.client_thread.is_alive():
+                self.client_thread.join(timeout=5)
+                if self.client_thread.is_alive():
+                    self.debug_logger.log_warning("Client thread did not stop gracefully")
+            
             self.debug_logger.log_info("DingTalk Stream Client stopped")
             
         except Exception as e:
@@ -110,4 +130,7 @@ class DebugLogger:
         self.logger.error(f"[{self.context}] {message}")
     
     def log_debug(self, message: str):
-        self.logger.debug(f"[{self.context}] {message}") 
+        self.logger.debug(f"[{self.context}] {message}")
+    
+    def log_warning(self, message: str):
+        self.logger.warning(f"[{self.context}] {message}") 
