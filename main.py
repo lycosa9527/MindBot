@@ -2,7 +2,7 @@ import asyncio
 import signal
 import sys
 import logging
-from config import DEBUG_MODE
+from config import DEBUG_MODE, VERSION, BUILD_DATE
 from dingtalk_stream import DingTalkStreamClient
 from agent import MindBotAgent
 from debug import run_diagnostics
@@ -18,7 +18,7 @@ class MindBotStreamApp:
     async def initialize(self):
         """Initialize the application components"""
         try:
-            logger.info("Initializing MindBot Stream Application...")
+            logger.info(f"Initializing MindBot {VERSION} ({BUILD_DATE}) Stream Application...")
             
             # Initialize agent
             self.agent = MindBotAgent()
@@ -49,6 +49,9 @@ class MindBotStreamApp:
     async def handle_message(self, message: str, context: dict = None) -> str:
         """Handle incoming messages"""
         try:
+            if not message or not message.strip():
+                return "I'm sorry, I didn't receive any message. Please try again."
+                
             logger.info(f"Handling message: {message[:50]}...")
             response = await self.agent.process_message(message, context)
             logger.info(f"Generated response: {response[:50]}...")
@@ -69,7 +72,7 @@ class MindBotStreamApp:
     async def start(self):
         """Start the application"""
         try:
-            logger.info("Starting MindBot Stream Application...")
+            logger.info(f"Starting MindBot {VERSION} Stream Application...")
             
             # Setup signal handlers
             self.setup_signal_handlers()

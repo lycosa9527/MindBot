@@ -1,6 +1,9 @@
-# MindBot POC - DingTalk Chatbot
+# MindBot POC v0.1 - DingTalk Chatbot
 
 A proof-of-concept DingTalk chatbot that integrates with Dify API using LangChain agents.
+
+**Version:** v0.1  
+**Build Date:** 2024-01-20
 
 ## Features
 
@@ -10,6 +13,8 @@ A proof-of-concept DingTalk chatbot that integrates with Dify API using LangChai
 - **Multiple Tools**: Calculator, time, user info, and Dify chat tools
 - **Debug Features**: Comprehensive diagnostics and logging
 - **Graceful Shutdown**: Proper signal handling and cleanup
+- **Enhanced Security**: Safe mathematical evaluation and input validation
+- **Error Handling**: Robust error handling with fallback mechanisms
 
 ## Project Structure
 
@@ -44,10 +49,14 @@ mindbot_poc/
    ```bash
    OPENAI_API_KEY=your_openai_api_key
    DIFY_WORKSPACE_ID=your_dify_workspace_id
+   DINGTALK_CLIENT_ID=your_dingtalk_client_id
+   DINGTALK_CLIENT_SECRET=your_dingtalk_client_secret
+   DINGTALK_ROBOT_CODE=your_dingtalk_robot_code
+   DIFY_BASE_URL=your_dify_base_url
    ```
 
 3. **Configuration**:
-   - DingTalk credentials are hardcoded in `config.py`
+   - All credentials can now be set via environment variables
    - Dify API URL and key have default values
    - Debug mode is enabled by default
 
@@ -70,7 +79,7 @@ The LangChain agent has access to these tools:
 - **dify_chat**: Chat with Dify API for knowledge and workflow responses
 - **get_time**: Get current date and time
 - **get_user_info**: Get information about the current user
-- **calculator**: Perform basic mathematical calculations
+- **calculator**: Perform basic mathematical calculations (with enhanced security)
 
 ## Debug Features
 
@@ -85,13 +94,21 @@ The application includes comprehensive debugging:
 ## Configuration
 
 ### DingTalk Settings
-- Client ID: `dingr6bg0cj9ylmlpuqz`
-- Client Secret: `h2uRQXw2osb5-VhAzCd_fhwXWwTKiitF8pBIb0JuXENwkxnjksYoHtMDqnGwVQmD`
-- Robot Code: `dingr6bg0cj9ylmlpuqz`
+- Client ID: `dingr6bg0cj9ylmlpuqz` (default)
+- Client Secret: `h2uRQXw2osb5-VhAzCd_fhwXWwTKiitF8pBIb0JuXENwkxnjksYoHtMDqnGwVQmD` (default)
+- Robot Code: `dingr6bg0cj9ylmlpuqz` (default)
 
 ### Dify Settings
 - API Key: `app-4DGFRXExxcP0xZ5Og3AXfT2N` (default)
-- Base URL: `http://dify.mindspringedu.com/v1`
+- Base URL: `http://dify.mindspringedu.com/v1` (default)
+
+## Security Improvements (v0.1)
+
+- **Safe Calculator**: Replaced `eval()` with secure AST-based evaluation
+- **Input Validation**: Added comprehensive input validation
+- **Error Handling**: Enhanced error handling with specific error types
+- **Timeout Protection**: Added request timeouts to prevent hanging
+- **Environment Variables**: Moved hardcoded credentials to environment variables
 
 ## Troubleshooting
 

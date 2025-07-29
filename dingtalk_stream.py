@@ -1,6 +1,6 @@
 from dingtalk_stream import AsyncDingTalkStreamClient
 import logging
-from config import DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE
+from config import DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE, VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +16,15 @@ class DingTalkStreamClient:
         # Register message handler
         self.client.on_chatbot_message = self._handle_message
         
-        logger.info("DingTalk Stream Client initialized")
+        logger.info(f"DingTalk Stream Client {VERSION} initialized")
     
     async def _handle_message(self, message):
         """Handle incoming DingTalk messages"""
         try:
+            if not message or not message.text or not message.text.strip():
+                self.debug_logger.log_error("Received empty message")
+                return
+                
             self.debug_logger.log_info(f"Received message: {message.text[:50]}...")
             
             # Extract user information
@@ -36,6 +40,10 @@ class DingTalkStreamClient:
                 response = await self.agent_handler(message.text, context)
             else:
                 response = "I'm sorry, the agent is not available right now."
+            
+            # Validate response
+            if not response or not response.strip():
+                response = "I'm sorry, I couldn't generate a response. Please try again."
             
             # Send reply
             await self.client.reply_message(
@@ -59,7 +67,7 @@ class DingTalkStreamClient:
     async def start(self):
         """Start the DingTalk stream client"""
         try:
-            self.debug_logger.log_info("Starting DingTalk Stream Client...")
+            self.debug_logger.log_info(f"Starting DingTalk Stream Client {VERSION}...")
             await self.client.start_forever()
         except Exception as e:
             self.debug_logger.log_error(f"Error starting stream client: {str(e)}")

@@ -4,7 +4,7 @@ from langchain.schema import SystemMessage, HumanMessage
 from langchain.tools import BaseTool
 from typing import List, Dict, Any
 import logging
-from config import OPENAI_API_KEY
+from config import OPENAI_API_KEY, VERSION
 from dify_client import DifyClient
 from tools import DifyChatTool, GetTimeTool, GetUserInfoTool, CalculatorTool
 
@@ -28,7 +28,7 @@ class MindBotAgent:
         # Create agent
         self.agent = self._create_agent()
         
-        logger.info("MindBotAgent initialized successfully")
+        logger.info(f"MindBotAgent {VERSION} initialized successfully")
     
     def _create_tools(self) -> List[BaseTool]:
         """Create and return list of available tools"""
@@ -43,7 +43,7 @@ class MindBotAgent:
     
     def _create_agent(self):
         """Create the LangChain agent with tools"""
-        system_prompt = """You are MindBot, a helpful AI assistant integrated with DingTalk. 
+        system_prompt = f"""You are MindBot {VERSION}, a helpful AI assistant integrated with DingTalk. 
         You have access to the following tools:
         - dify_chat: Use this to chat with Dify API for knowledge and workflow responses
         - get_time: Get current date and time
@@ -56,7 +56,8 @@ class MindBotAgent:
         3. If the user asks for calculations, use calculator tool
         4. If the user asks about themselves, use get_user_info tool
         
-        Always be helpful and provide clear, concise responses."""
+        Always be helpful and provide clear, concise responses.
+        If you encounter an error, try to provide a helpful fallback response."""
         
         prompt = [SystemMessage(content=system_prompt)]
         
@@ -72,9 +73,13 @@ class MindBotAgent:
     async def process_message(self, message: str, context: Dict[str, Any] = None) -> str:
         """Process a message using the agent"""
         try:
+            # Validate input
+            if not message or not message.strip():
+                return "I'm sorry, I didn't receive any message. Please try again."
+            
             # Enhance message with context
             user_id = context.get("user_id", "unknown") if context else "unknown"
-            enhanced_message = f"User {user_id}: {message}"
+            enhanced_message = f"User {user_id}: {message.strip()}"
             
             logger.info(f"Processing message: {message[:50]}...")
             
@@ -84,6 +89,9 @@ class MindBotAgent:
             })
             
             response = result.get("output", "")
+            if not response or response.strip() == "":
+                response = "I'm sorry, I couldn't generate a response. Please try again."
+            
             logger.info(f"Agent response: {response[:100]}...")
             
             return response
@@ -110,12 +118,17 @@ class MindBotAgent:
             "Hello, how are you?"
         ]
         
+        success_count = 0
         for test_case in test_cases:
             try:
                 logger.info(f"Testing: {test_case}")
                 result = await self.process_message(test_case)
-                logger.info(f"Test result: {result[:100]}...")
+                if result and not result.startswith("Error"):
+                    success_count += 1
+                    logger.info(f"Test passed: {result[:50]}...")
+                else:
+                    logger.warning(f"Test failed: {result}")
             except Exception as e:
                 logger.error(f"Test failed for '{test_case}': {str(e)}")
         
-        logger.info("Tool calling test completed") 
+        logger.info(f"Tool calling test completed: {success_count}/{len(test_cases)} passed") 
