@@ -1,5 +1,5 @@
 from langchain.tools import BaseTool
-from typing import Optional
+from typing import Optional, Type
 import datetime
 import logging
 import re
@@ -8,8 +8,8 @@ import ast
 logger = logging.getLogger(__name__)
 
 class DifyChatTool(BaseTool):
-    name = "dify_chat"
-    description = "Use this tool to chat with Dify API. Input should be a string containing the user's message."
+    name: str = "dify_chat"
+    description: str = "Use this tool to chat with Dify API. Input should be a string containing the user's message."
     
     def __init__(self, dify_client):
         super().__init__()
@@ -36,8 +36,8 @@ class DifyChatTool(BaseTool):
         return await self.dify_client.chat_completion(query)
 
 class GetTimeTool(BaseTool):
-    name = "get_time"
-    description = "Get the current date and time. No input required."
+    name: str = "get_time"
+    description: str = "Get the current date and time. No input required."
     
     def _run(self, query: str = "") -> str:
         """Get current time"""
@@ -49,8 +49,8 @@ class GetTimeTool(BaseTool):
         return self._run(query)
 
 class GetUserInfoTool(BaseTool):
-    name = "get_user_info"
-    description = "Get information about the current user. Input should be the user ID."
+    name: str = "get_user_info"
+    description: str = "Get information about the current user. Input should be the user ID."
     
     def _run(self, user_id: str) -> str:
         """Get user information"""
@@ -63,8 +63,8 @@ class GetUserInfoTool(BaseTool):
         return self._run(user_id)
 
 class CalculatorTool(BaseTool):
-    name = "calculator"
-    description = "Perform basic mathematical calculations. Input should be a mathematical expression like '2 + 2' or '10 * 5'."
+    name: str = "calculator"
+    description: str = "Perform basic mathematical calculations. Input should be a mathematical expression like '2 + 2' or '10 * 5'."
     
     def _safe_eval(self, expression: str) -> float:
         """Safely evaluate mathematical expressions"""

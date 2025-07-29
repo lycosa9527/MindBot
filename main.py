@@ -3,7 +3,7 @@ import signal
 import sys
 import logging
 from config import DEBUG_MODE, VERSION, BUILD_DATE
-from dingtalk_stream import DingTalkStreamClient
+from dingtalk_client import MindBotDingTalkClient
 from agent import MindBotAgent
 from debug import run_diagnostics
 
@@ -25,7 +25,7 @@ class MindBotStreamApp:
             logger.info("Agent initialized successfully")
             
             # Initialize DingTalk stream client
-            self.dingtalk_client = DingTalkStreamClient(
+            self.dingtalk_client = MindBotDingTalkClient(
                 agent_handler=self.handle_message
             )
             logger.info("DingTalk Stream Client initialized successfully")

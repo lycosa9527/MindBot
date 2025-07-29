@@ -1,12 +1,12 @@
-from dingtalk_stream import AsyncDingTalkStreamClient
+from dingtalk_stream import DingTalkStreamClient
 import logging
 from config import DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE, VERSION
 
 logger = logging.getLogger(__name__)
 
-class DingTalkStreamClient:
+class MindBotDingTalkClient:
     def __init__(self, agent_handler=None):
-        self.client = AsyncDingTalkStreamClient(
+        self.client = DingTalkStreamClient(
             client_id=DINGTALK_CLIENT_ID,
             client_secret=DINGTALK_CLIENT_SECRET
         )
