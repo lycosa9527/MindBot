@@ -1,15 +1,9 @@
 # MindBot POC v0.2 - DingTalk Chatbot
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-0.2-orange.svg)](https://github.com/lycosa9527/MindBot/releases)
 [![WakaTime](https://wakatime.com/badge/user/60ba0518-3829-457f-ae10-3eff184d5f69/project/707446f2-b1e2-4f2d-8f57-53d016ce3302.svg)](https://wakatime.com/@60ba0518-3829-457f-ae10-3eff184d5f69/projects/707446f2-b1e2-4f2d-8f57-53d016ce3302)
-[![DingTalk](https://img.shields.io/badge/DingTalk-Stream%20Mode-red.svg)](https://open.dingtalk.com/)
-[![Dify](https://img.shields.io/badge/Dify-API%20Integration-purple.svg)](https://dify.ai/)
-[![LangChain](https://img.shields.io/badge/LangChain-Tools-yellow.svg)](https://langchain.com/)
-[![aiohttp](https://img.shields.io/badge/aiohttp-3.8+-lightblue.svg)](https://docs.aiohttp.org/)
-[![python-dotenv](https://img.shields.io/badge/python--dotenv-1.0+-green.svg)](https://github.com/theskumar/python-dotenv)
-[![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)](https://github.com/lycosa9527/MindBot)
 
 A proof-of-concept DingTalk chatbot that integrates with Dify API using LangChain agents.
 
