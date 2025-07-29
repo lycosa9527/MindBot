@@ -1,0 +1,7 @@
+dingtalk-stream>=1.0.0
+langchain>=0.1.0
+langchain-openai>=0.0.5
+python-dotenv>=1.0.0
+aiohttp>=3.8.0
+asyncio
+logging 
