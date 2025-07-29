@@ -8,7 +8,7 @@ DIFY_WORKSPACE_ID=your_dify_workspace_id
 
 # Qwen Configuration (replacing OpenAI)
 QWEN_API_KEY=sk-c688d7977e6547019b7532ab69c818b2  # Default value
-QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions  # Default value
+QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1  # Default value
 QWEN_MODEL=qwen-turbo-latest  # Default value
 
 # OpenAI Configuration (kept for backward compatibility)
