@@ -138,4 +138,5 @@ class MindBotAgent:
             except Exception as e:
                 logger.error(f"Test failed for '{test_case}': {str(e)}")
         
-        logger.info(f"Tool calling test completed: {success_count}/{len(test_cases)} passed") 
+        logger.info(f"Tool calling test completed: {success_count}/{len(test_cases)} passed")
+        return success_count >= len(test_cases) * 0.5  # At least 50% success rate 

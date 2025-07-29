@@ -64,7 +64,8 @@ class MindBotStreamApp:
         """Setup signal handlers for graceful shutdown"""
         def signal_handler(signum, frame):
             logger.info(f"Received signal {signum}, shutting down gracefully...")
-            self.running = False
+            # Create a task to stop the application
+            asyncio.create_task(self.stop())
         
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)

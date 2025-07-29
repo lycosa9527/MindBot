@@ -2,7 +2,7 @@ import logging
 import aiohttp
 import asyncio
 from typing import Dict, Any
-from config import DIFY_API_KEY, DIFY_BASE_URL, OPENAI_API_KEY, DEBUG_MODE
+from config import DIFY_API_KEY, DIFY_BASE_URL, QWEN_API_KEY, QWEN_BASE_URL, QWEN_MODEL, DEBUG_MODE
 
 logger = logging.getLogger(__name__)
 
@@ -56,32 +56,33 @@ class ConnectionTester:
             self.debug_logger.log_error(f"Dify API connection error: {str(e)}")
             return False
     
-    async def test_openai_connection(self) -> bool:
-        """Test connection to OpenAI API"""
+    async def test_qwen_connection(self) -> bool:
+        """Test connection to Qwen API"""
         try:
-            self.debug_logger.log_info("Testing OpenAI API connection...")
+            self.debug_logger.log_info("Testing Qwen API connection...")
             
-            # Simple test - try to create a ChatOpenAI instance
+            # Simple test - try to create a ChatOpenAI instance with Qwen config
             from langchain_openai import ChatOpenAI
             
             llm = ChatOpenAI(
-                model="gpt-3.5-turbo",
+                model=QWEN_MODEL,
                 temperature=0,
-                openai_api_key=OPENAI_API_KEY
+                openai_api_key=QWEN_API_KEY,
+                openai_api_base=QWEN_BASE_URL
             )
             
             # Test with a simple message
             response = await llm.ainvoke("Hello")
             
             if response and response.content:
-                self.debug_logger.log_info("OpenAI API connection successful")
+                self.debug_logger.log_info("Qwen API connection successful")
                 return True
             else:
-                self.debug_logger.log_error("OpenAI API connection failed - no response")
+                self.debug_logger.log_error("Qwen API connection failed - no response")
                 return False
                 
         except Exception as e:
-            self.debug_logger.log_error(f"OpenAI API connection error: {str(e)}")
+            self.debug_logger.log_error(f"Qwen API connection error: {str(e)}")
             return False
     
     def validate_configuration(self) -> Dict[str, Any]:
@@ -91,7 +92,9 @@ class ConnectionTester:
         results = {
             "dify_api_key": bool(DIFY_API_KEY),
             "dify_base_url": bool(DIFY_BASE_URL),
-            "openai_api_key": bool(OPENAI_API_KEY),
+            "qwen_api_key": bool(QWEN_API_KEY),
+            "qwen_base_url": bool(QWEN_BASE_URL),
+            "qwen_model": bool(QWEN_MODEL),
             "debug_mode": DEBUG_MODE
         }
         
@@ -220,7 +223,7 @@ async def run_diagnostics():
     
     # Test connections
     dify_connection = await connection_tester.test_dify_connection()
-    openai_connection = await connection_tester.test_openai_connection()
+    qwen_connection = await connection_tester.test_qwen_connection()
     
     # Test tools (if connections are working)
     tool_results = {}
@@ -232,9 +235,9 @@ async def run_diagnostics():
     tool_results["time_tool"] = await tool_tester.test_time_tool()
     tool_results["calculator_tool"] = await tool_tester.test_calculator_tool()
     
-    # Test agent (if OpenAI connection is working)
+    # Test agent (if Qwen connection is working)
     agent_result = False
-    if openai_connection:
+    if qwen_connection:
         from agent import MindBotAgent
         agent = MindBotAgent()
         agent_result = await agent_tester.test_agent_tool_calling(agent)
@@ -243,14 +246,14 @@ async def run_diagnostics():
     logger.info("=== DIAGNOSTICS SUMMARY ===")
     logger.info(f"Configuration: {'PASS' if all(config_results.values()) else 'FAIL'}")
     logger.info(f"Dify Connection: {'PASS' if dify_connection else 'FAIL'}")
-    logger.info(f"OpenAI Connection: {'PASS' if openai_connection else 'FAIL'}")
+    logger.info(f"Qwen Connection: {'PASS' if qwen_connection else 'FAIL'}")
     logger.info(f"Tool Tests: {sum(tool_results.values())}/{len(tool_results)} PASS")
     logger.info(f"Agent Test: {'PASS' if agent_result else 'FAIL'}")
     
     overall_success = (
         all(config_results.values()) and
         dify_connection and
-        openai_connection and
+        qwen_connection and
         all(tool_results.values()) and
         agent_result
     )
