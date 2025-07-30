@@ -92,6 +92,13 @@ class MessageHandler:
             user_id = message_data.get('senderStaffId', 'unknown')
             logger.info(f"User {user_id} sent: {user_message}")
             
+            # Debug: Log message structure for analysis
+            logger.debug(f"Message data keys: {list(message_data.keys())}")
+            if 'msgId' in message_data:
+                logger.debug(f"DingTalk message ID: {message_data.get('msgId')}")
+            if 'conversationId' in message_data:
+                logger.debug(f"Conversation ID: {message_data.get('conversationId')}")
+            
             # Return the coroutine for async processing
             return self.on_message(message_data)
             
@@ -119,8 +126,16 @@ class MessageHandler:
             user_id = message_data.get("senderStaffId", "unknown")
             conversation_id = message_data.get("conversationId", "")
             
-            # Create robust message hash for deduplication
-            message_hash = self._create_message_hash(user_id, conversation_id, text_content)
+            # Check if DingTalk provides a unique message ID
+            message_id = message_data.get("msgId", "")
+            if message_id:
+                # Use DingTalk's message ID for deduplication
+                message_hash = message_id
+                logger.debug(f"Using DingTalk message ID: {message_id}")
+            else:
+                # Fallback to our own hash if no message ID provided
+                message_hash = self._create_message_hash(user_id, conversation_id, text_content)
+                logger.debug(f"No DingTalk message ID, using hash: {message_hash[:10]}...")
             
             # Check for duplicates with thread safety and TTL
             if self._is_duplicate_message(message_hash):
