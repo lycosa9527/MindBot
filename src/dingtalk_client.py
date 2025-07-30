@@ -11,6 +11,8 @@ import logging
 import ssl
 import certifi
 import threading
+import hashlib
+import time
 from typing import Callable, Dict, Any
 from dingtalk_stream import DingTalkStreamClient, Credential
 from config import (
@@ -36,6 +38,12 @@ class MessageHandler:
         """
         self.agent_handler = agent_handler  # Callback to AI agent
         self.debug_logger = DebugLogger("MessageHandler")
+        
+        # Initialize deduplication tracking with thread safety
+        self._recent_messages = {}  # {message_hash: timestamp}
+        self._dedup_lock = threading.Lock()
+        self._max_recent_messages = 100
+        self._message_ttl = 300  # 5 minutes TTL
         
     def pre_start(self):
         """
@@ -101,36 +109,26 @@ class MessageHandler:
                 logger.warning("No text content found in message")
                 return
             
-            # Create a unique message identifier for deduplication
+            # Extract user and conversation information for deduplication
             user_id = message_data.get("senderStaffId", "unknown")
             conversation_id = message_data.get("conversationId", "")
-            message_id = f"{user_id}:{conversation_id}:{text_content[:50]}"
             
-            # Check if we've recently processed this exact message
-            if hasattr(self, 'recent_messages') and message_id in self.recent_messages:
+            # Create robust message hash for deduplication
+            message_hash = self._create_message_hash(user_id, conversation_id, text_content)
+            
+            # Check for duplicates with thread safety and TTL
+            if self._is_duplicate_message(message_hash):
                 logger.info(f"Skipping duplicate message: {text_content[:30]}...")
                 return
             
-            # Add to recent messages (simple deduplication)
-            if not hasattr(self, 'recent_messages'):
-                self.recent_messages = set()
-            self.recent_messages.add(message_id)
-            
-            # Keep only last 50 messages to prevent memory growth
-            if len(self.recent_messages) > 50:
-                # Convert to list, remove oldest, convert back to set
-                recent_list = list(self.recent_messages)
-                self.recent_messages = set(recent_list[-25:])
+            # Add message to recent messages with timestamp
+            self._add_recent_message(message_hash)
             
             # Extract session webhook for sending replies
             session_webhook = message_data.get("sessionWebhook", "")
             if not session_webhook:
                 logger.error("No session webhook found in message")
                 return
-            
-            # Extract user and conversation information
-            user_id = message_data.get("senderStaffId", "unknown")
-            conversation_id = message_data.get("conversationId", "")
             
             # Create context for AI agent
             context = {
@@ -153,6 +151,78 @@ class MessageHandler:
             session_webhook = message_data.get("sessionWebhook", "")
             if session_webhook:
                 await self.send_error_response(session_webhook)
+    
+    def _create_message_hash(self, user_id: str, conversation_id: str, text_content: str) -> str:
+        """
+        Create a robust hash for message deduplication.
+        
+        Args:
+            user_id: User identifier
+            conversation_id: Conversation identifier
+            text_content: Message text content
+            
+        Returns:
+            SHA-256 hash of the message components
+        """
+        # Create a unique string combining all message components
+        message_string = f"{user_id}:{conversation_id}:{text_content}"
+        # Generate SHA-256 hash for robust deduplication
+        return hashlib.sha256(message_string.encode('utf-8')).hexdigest()
+    
+    def _is_duplicate_message(self, message_hash: str) -> bool:
+        """
+        Check if message is a duplicate with thread safety and TTL.
+        
+        Args:
+            message_hash: Hash of the message to check
+            
+        Returns:
+            True if message is a duplicate, False otherwise
+        """
+        current_time = time.time()
+        
+        with self._dedup_lock:
+            # Check if message exists and is within TTL
+            if message_hash in self._recent_messages:
+                timestamp = self._recent_messages[message_hash]
+                if current_time - timestamp < self._message_ttl:
+                    return True
+                else:
+                    # Remove expired message
+                    del self._recent_messages[message_hash]
+            
+            return False
+    
+    def _add_recent_message(self, message_hash: str) -> None:
+        """
+        Add message to recent messages with cleanup.
+        
+        Args:
+            message_hash: Hash of the message to add
+        """
+        current_time = time.time()
+        
+        with self._dedup_lock:
+            # Add new message
+            self._recent_messages[message_hash] = current_time
+            
+            # Cleanup expired messages
+            expired_hashes = [
+                hash_key for hash_key, timestamp in self._recent_messages.items()
+                if current_time - timestamp > self._message_ttl
+            ]
+            for hash_key in expired_hashes:
+                del self._recent_messages[hash_key]
+            
+            # If still too many messages, remove oldest
+            if len(self._recent_messages) > self._max_recent_messages:
+                # Sort by timestamp and keep only the newest
+                sorted_messages = sorted(
+                    self._recent_messages.items(), 
+                    key=lambda x: x[1], 
+                    reverse=True
+                )
+                self._recent_messages = dict(sorted_messages[:self._max_recent_messages // 2])
     
     async def send_reply(self, session_webhook: str, message: str):
         """
