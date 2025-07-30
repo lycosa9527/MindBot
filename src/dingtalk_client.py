@@ -77,18 +77,12 @@ class MindBotChatbotHandler(ChatbotHandler):
             # Log user message at INFO level for visibility
             logger.info(f"User {user_id} sent: {text_content}")
             
-            # Debug: Log message structure for analysis
-            logger.debug(f"Message ID: {message_id}")
-            logger.debug(f"Conversation ID: {conversation_id}")
-            
             # Use DingTalk's message ID for deduplication
             if message_id:
                 message_hash = message_id
-                logger.debug(f"Using DingTalk message ID: {message_id}")
             else:
                 # Fallback to our own hash if no message ID provided
                 message_hash = self._create_message_hash(user_id, conversation_id, text_content)
-                logger.debug(f"No DingTalk message ID, using hash: {message_hash[:10]}...")
             
             # Check for duplicates with thread safety and TTL
             if self._is_duplicate_message(message_hash):
@@ -97,9 +91,6 @@ class MindBotChatbotHandler(ChatbotHandler):
             
             # Add message to recent messages with timestamp
             self._add_recent_message(message_hash)
-            
-            # Log processing at debug level
-            logger.debug(f"Processing message from user {user_id}: {text_content[:50]}...")
             
             # Create context for AI agent
             context = {
@@ -111,8 +102,8 @@ class MindBotChatbotHandler(ChatbotHandler):
             # Call AI agent to generate response
             response = await self.agent_handler(text_content, context)
             
-            # Log workflow completion at INFO level
-            logger.info(f"Response sent to {user_id}: {response[:100]}...")
+            # Log workflow completion
+            logger.info(f"Response sent to {user_id}")
             
             # Use official SDK method to send reply
             self.reply_text(response, incoming_message)
