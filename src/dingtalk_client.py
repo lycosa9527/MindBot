@@ -100,6 +100,7 @@ class MessageHandler:
                 logger.debug(f"Conversation ID: {message_data.get('conversationId')}")
             
             # Return the coroutine for async processing
+            # This ensures proper acknowledgment to DingTalk SDK
             return self.on_message(message_data)
             
         except Exception as e:
@@ -140,7 +141,9 @@ class MessageHandler:
             # Check for duplicates with thread safety and TTL
             if self._is_duplicate_message(message_hash):
                 logger.info(f"Duplicate detected - User {user_id}: {text_content}")
-                return
+                # Return acknowledgment for duplicate to prevent retries
+                from dingtalk_stream import AckMessage
+                return AckMessage.STATUS_OK, "Duplicate message acknowledged"
             
             # Add message to recent messages with timestamp
             self._add_recent_message(message_hash)
@@ -170,6 +173,11 @@ class MessageHandler:
             # Send response back to DingTalk via session webhook
             await self.send_reply(session_webhook, response)
             
+            # Return success acknowledgment to DingTalk SDK
+            # This prevents DingTalk from retrying the message
+            from dingtalk_stream import AckMessage
+            return AckMessage.STATUS_OK, "Message processed successfully"
+            
         except Exception as e:
             logger.error(f"Error processing message: {str(e)}")
             # Try to send error response if possible
@@ -177,6 +185,10 @@ class MessageHandler:
             if session_webhook:
                 logger.info(f"Sending error response to user: {user_id}")
                 await self.send_error_response(session_webhook)
+            
+            # Return error acknowledgment to DingTalk SDK
+            from dingtalk_stream import AckMessage
+            return AckMessage.STATUS_ERROR, f"Error processing message: {str(e)}"
     
     def _create_message_hash(self, user_id: str, conversation_id: str, text_content: str) -> str:
         """
