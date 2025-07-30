@@ -68,16 +68,16 @@ class DifyClient:
             }
             
             # Log request details for debugging (without sensitive data)
-            logger.info(f"Dify API URL: {url}")
-            logger.info(f"User ID: {user_id}")
-            logger.info(f"Message: {message[:50]}...")
+            logger.debug(f"Dify API URL: {url}")
+            logger.debug(f"User ID: {user_id}")
+            logger.debug(f"Message: {message[:50]}...")
             
             # Make HTTP POST request to Dify API with increased timeout
             timeout = aiohttp.ClientTimeout(total=120, connect=60)
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(url, headers=headers, json=payload) as response:
                     # Log response status for debugging
-                    logger.info(f"Dify API Response Status: {response.status}")
+                    logger.debug(f"Dify API Response Status: {response.status}")
                     
                     # Check if request was successful
                     if response.status != 200:

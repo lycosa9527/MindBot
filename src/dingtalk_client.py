@@ -84,7 +84,8 @@ class MessageHandler:
                 logger.error("Message object has no data attribute")
                 return None
                 
-            logger.info(f"Received message from {message_data.get('senderStaffId', 'unknown')}: {message_data.get('text', {}).get('content', '')[:50]}...")
+            # Log only at debug level to reduce console verbosity
+            logger.debug(f"Received message from {message_data.get('senderStaffId', 'unknown')}: {message_data.get('text', {}).get('content', '')[:50]}...")
             
             # Return the coroutine for async processing
             return self.on_message(message_data)
@@ -137,7 +138,8 @@ class MessageHandler:
                 "session_webhook": session_webhook
             }
             
-            logger.info(f"Processing message from user {user_id}: {text_content[:50]}...")
+            # Log only at debug level to reduce console verbosity
+            logger.debug(f"Processing message from user {user_id}: {text_content[:50]}...")
             
             # Call AI agent to generate response
             response = await self.agent_handler(text_content, context)

@@ -89,7 +89,8 @@ class MindBotStreamApp:
             The AI-generated response to send back to the user
         """
         try:
-            logger.info(f"Processing message: {message_text[:50]}...")
+            # Log only at debug level to reduce console verbosity
+            logger.debug(f"Processing message: {message_text[:50]}...")
             
             # Validate message content to prevent processing empty messages
             if not message_text or not message_text.strip():
@@ -104,7 +105,8 @@ class MindBotStreamApp:
                 context = {}
             
             # Process message through AI agent for intelligent response generation
-            logger.info("Sending to AI Agent...")
+            # Log only at debug level to reduce console verbosity
+            logger.debug("Sending to AI Agent...")
             response = await self.agent.process_message(message_text, context)
             
             # Validate agent response to ensure quality output
