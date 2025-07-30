@@ -12,7 +12,7 @@ import ast
 from datetime import datetime
 from typing import Dict, Any, List
 from langchain.tools import BaseTool
-from config import CALCULATOR_EXPRESSION_LIMIT
+from src.config import CALCULATOR_EXPRESSION_LIMIT
 
 logger = logging.getLogger(__name__)
 

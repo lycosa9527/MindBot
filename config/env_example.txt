@@ -6,6 +6,7 @@ DINGTALK_CLIENT_ID=your_dingtalk_client_id
 DINGTALK_CLIENT_SECRET=your_dingtalk_client_secret
 DINGTALK_ROBOT_CODE=your_robot_code
 DINGTALK_ROBOT_NAME=MindBot_poc
+DINGTALK_CARD_TEMPLATE_ID=c497adc7-0d7e-4662-976b-ab07b35332db.schema
 
 # Dify Configuration (Required)
 DIFY_API_KEY=your_dify_api_key
@@ -21,4 +22,17 @@ QWEN_MODEL=qwen3-0.6b
 # Set DEBUG_MODE=false and LOG_LEVEL=INFO for production use
 # Set LOG_LEVEL=WARNING to reduce console output
 DEBUG_MODE=false
-LOG_LEVEL=INFO 
+LOG_LEVEL=INFO
+
+# Streaming Optimization Configuration
+# Adjust these values to optimize streaming performance
+STREAMING_MIN_CHUNK_SIZE=20
+STREAMING_UPDATE_DELAY=0.05
+STREAMING_MAX_RETRIES=3
+STREAMING_RETRY_DELAY=1.0
+
+# Fluid Streaming Configuration (for better user experience)
+# Enable more frequent updates for smoother streaming
+ENABLE_FLUID_STREAMING=true
+FLUID_STREAMING_MIN_CHUNK=10
+FLUID_STREAMING_DELAY=0.02 

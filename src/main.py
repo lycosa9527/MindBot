@@ -13,11 +13,11 @@ from datetime import datetime
 import uuid
 
 # Import local modules
-from config import VERSION, BUILD_DATE
-from debug import setup_colored_logging, run_diagnostics
-from dingtalk_client import MindBotDingTalkClient
-from agent import MindBotAgent
-from banner import display_banner
+from src.config import VERSION, BUILD_DATE
+from src.debug import setup_colored_logging, run_diagnostics
+from src.dingtalk_client import MindBotDingTalkClient
+from src.agent import MindBotAgent
+from src.banner import display_banner
 
 # Version information imported from config
 
@@ -61,7 +61,8 @@ class MindBotStreamApp:
             # Initialize DingTalk stream client for WebSocket communication
             logger.info("Initializing DingTalk Stream Client...")
             self.dingtalk_client = MindBotDingTalkClient(
-                agent_handler=self.handle_message  # Pass message handler to client
+                agent_handler=self.handle_message,  # Pass message handler to client
+                agent_instance=self.agent  # Pass agent instance for streaming
             )
             logger.info("DingTalk client initialized successfully")
             

@@ -1,8 +1,8 @@
-# MindBot v0.4 - Intelligent DingTalk Chatbot / 智能钉钉聊天机器人
+# MindBot v0.4.2 - Intelligent DingTalk Chatbot / 智能钉钉聊天机器人
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.4-orange.svg)](https://github.com/lycosa9527/MindBot/releases)
+[![Version](https://img.shields.io/badge/Version-0.4.2-orange.svg)](https://github.com/lycosa9527/MindBot/releases)
 [![WakaTime](https://wakatime.com/badge/user/60ba0518-3829-457f-ae10-3eff184d5f69/project/707446f2-b1e2-4f2d-8f57-53d016ce3302.svg)](https://wakatime.com/@60ba0518-3829-457f-ae10-3eff184d5f69/projects/707446f2-b1e2-4f2d-8f57-53d016ce3302)
 
 ---
@@ -13,8 +13,8 @@
 
 **中文**: MindBot 是一个基于 Dify API 的智能钉钉聊天机器人，专为教育辅助和教学支持而设计。应用程序使用钉钉的 Stream Mode 进行实时消息处理，并集成 Dify 知识库以提供智能回复。
 
-**Version / 版本**: v0.4  
-**Build Date / 构建日期**: 2025-01-30
+**Version / 版本**: v0.4.2  
+**Build Date / 构建日期**: 2025-01-31
 
 ---
 
@@ -90,9 +90,72 @@ nano .env
 ```
 
 **4. Run Application / 运行应用程序**
+
+**Option A: Traditional Installation / 选项 A：传统安装**
 ```bash
 python run.py
 ```
+
+**Option B: Docker Deployment / 选项 B：Docker 部署**
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+
+# Or build and run manually
+docker build -t mindbot .
+docker run -d --name mindbot-app --env-file .env mindbot
+```
+
+---
+
+## 🐳 Docker Deployment / Docker 部署
+
+### Prerequisites / 前置要求
+- Docker and Docker Compose installed / 已安装 Docker 和 Docker Compose
+- Environment variables configured / 已配置环境变量
+
+### Quick Start with Docker / Docker 快速开始
+```bash
+# Clone repository
+git clone https://github.com/lycosa9527/MindBot.git
+cd MindBot
+
+# Configure environment
+cp config/env_example.txt .env
+# Edit .env with your credentials
+
+# Start with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop application
+docker-compose down
+```
+
+### Docker Commands / Docker 命令
+```bash
+# Build image
+docker build -t mindbot .
+
+# Run container
+docker run -d --name mindbot-app --env-file .env mindbot
+
+# View logs
+docker logs -f mindbot-app
+
+# Stop container
+docker stop mindbot-app
+docker rm mindbot-app
+```
+
+### Docker Configuration / Docker 配置
+- **Multi-stage build**: Optimized image size
+- **Non-root user**: Security best practices
+- **Health checks**: Container monitoring
+- **Volume mounts**: Persistent logs and config
+- **Environment variables**: Flexible configuration
 
 ---
 
@@ -173,13 +236,18 @@ mindbot_poc/
 │   ├── config.py          # Configuration management / 配置管理
 │   ├── debug.py           # Logging and diagnostics / 日志和诊断
 │   ├── tools.py           # Utility tools / 实用工具
+│   ├── voice_recognition.py # Voice recognition service / 语音识别服务
 │   └── banner.py          # Application banner / 应用程序横幅
 ├── config/                 # Configuration files / 配置文件
 │   └── env_example.txt    # Environment variables template / 环境变量模板
 ├── docs/                   # Documentation / 文档
-│   └── WIKI.md            # Comprehensive wiki / 详细维基
+│   ├── WIKI.md            # Comprehensive wiki / 详细维基
+│   └── VOICE_RECOGNITION.md # Voice recognition guide / 语音识别指南
 ├── requirements.txt        # Python dependencies / Python 依赖项
 ├── run.py                 # Application launcher / 应用程序启动器
+├── Dockerfile             # Docker container definition / Docker 容器定义
+├── docker-compose.yml     # Docker Compose configuration / Docker Compose 配置
+├── .dockerignore          # Docker build exclusions / Docker 构建排除项
 └── .env                   # Environment variables (user-created) / 环境变量（用户创建）
 ```
 

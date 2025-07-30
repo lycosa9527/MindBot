@@ -6,8 +6,8 @@ Handles message processing and Dify API integration for intelligent responses
 
 import logging
 from typing import Dict, Any
-from dify_client import DifyClient
-from config import QWEN_API_KEY, QWEN_BASE_URL, QWEN_MODEL, VERSION
+from src.dify_client import DifyClient
+from src.config import QWEN_API_KEY, QWEN_BASE_URL, QWEN_MODEL, VERSION
 
 logger = logging.getLogger(__name__)
 

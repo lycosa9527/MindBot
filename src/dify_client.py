@@ -8,8 +8,8 @@ import aiohttp
 import json
 import logging
 from typing import Optional
-from config import DIFY_API_KEY, DIFY_BASE_URL
-from debug import DebugLogger
+from src.config import DIFY_API_KEY, DIFY_BASE_URL
+from src.debug import DebugLogger
 
 logger = logging.getLogger(__name__)
 
@@ -134,3 +134,131 @@ class DifyClient:
         except Exception as e:
             logger.error(f"Dify API connection test failed: {str(e)}")
             return False 
+
+    async def chat_completion_streaming(self, message: str, user_id: str = "default"):
+        """
+        Send a streaming chat completion request to Dify API.
+        
+        Args:
+            message: The user's message to process
+            user_id: Unique identifier for the user
+            
+        Yields:
+            str: Streaming response chunks from Dify
+        """
+        try:
+            url = f"{self.base_url}/chat-messages"
+            
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "Accept": "text/event-stream"  # Required for SSE
+            }
+            
+            payload = {
+                "inputs": {},
+                "query": message,
+                "response_mode": "streaming",  # Enable streaming
+                "conversation_id": "",
+                "user": user_id,
+                "files": []
+            }
+            
+            timeout = aiohttp.ClientTimeout(total=120, connect=60)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(url, headers=headers, json=payload) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        logger.error(f"Dify streaming API error {response.status}: {error_text}")
+                        yield f"Error: Dify API returned status {response.status}"
+                        return
+                    
+                    # Process Server-Sent Events (SSE) stream
+                    async for line in response.content:
+                        line = line.decode('utf-8').strip()
+                        
+                        if line.startswith('data: '):
+                            data = line[6:]  # Remove 'data: ' prefix
+                            
+                            if data == '[DONE]':
+                                break
+                            
+                            try:
+                                event_data = json.loads(data)
+                                if 'answer' in event_data:
+                                    chunk = event_data['answer']
+                                    if chunk:
+                                        yield chunk
+                            except json.JSONDecodeError:
+                                continue
+                                
+        except Exception as e:
+            logger.error(f"Error in streaming chat completion: {str(e)}")
+            yield f"Error: {str(e)}"
+
+    async def chat_completion_streaming_with_callback(self, message: str, user_id: str = "default", 
+                                                    callback=None):
+        """
+        Send streaming chat completion with callback for real-time processing.
+        
+        Args:
+            message: The user's message to process
+            user_id: Unique identifier for the user
+            callback: Async function to call with each chunk (chunk: str) -> None
+        """
+        try:
+            url = f"{self.base_url}/chat-messages"
+            
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+                "Accept": "text/event-stream"
+            }
+            
+            payload = {
+                "inputs": {},
+                "query": message,
+                "response_mode": "streaming",
+                "conversation_id": "",
+                "user": user_id,
+                "files": []
+            }
+            
+            timeout = aiohttp.ClientTimeout(total=120, connect=60)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(url, headers=headers, json=payload) as response:
+                    if response.status != 200:
+                        error_text = await response.text()
+                        logger.error(f"Dify streaming API error {response.status}: {error_text}")
+                        if callback:
+                            await callback(f"Error: Dify API returned status {response.status}")
+                        return
+                    
+                    full_response = ""
+                    async for line in response.content:
+                        line = line.decode('utf-8').strip()
+                        
+                        if line.startswith('data: '):
+                            data = line[6:]
+                            
+                            if data == '[DONE]':
+                                break
+                            
+                            try:
+                                event_data = json.loads(data)
+                                if 'answer' in event_data:
+                                    chunk = event_data['answer']
+                                    if chunk:
+                                        full_response += chunk
+                                        if callback:
+                                            await callback(chunk)
+                            except json.JSONDecodeError:
+                                continue
+                    
+                    return full_response
+                                
+        except Exception as e:
+            logger.error(f"Error in streaming chat completion: {str(e)}")
+            if callback:
+                await callback(f"Error: {str(e)}")
+            return f"Error: {str(e)}" 

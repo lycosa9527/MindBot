@@ -1,6 +1,39 @@
 # MindBot Changelog / MindBot 更新日志
 
-## v0.4.1 (2025-01-30) - Voice Recognition Logic Fixes
+## v0.4.2 (2025-01-31) - Docker Environment Preparation & Documentation Updates
+
+### 🐳 Docker Environment Preparation / Docker 环境准备
+- **Dockerfile creation** - Added comprehensive Dockerfile for containerized deployment
+- **Docker Compose support** - Added docker-compose.yml for easy development and production deployment
+- **Multi-stage builds** - Optimized Docker image size with multi-stage build process
+- **Health checks** - Added container health monitoring and restart policies
+- **Environment management** - Proper handling of environment variables in containerized environment
+- **Volume mounts** - Support for persistent configuration and log storage
+
+### 📚 Documentation Updates / 文档更新
+- **Docker documentation** - Added comprehensive Docker setup and deployment guide
+- **Requirements update** - Updated requirements.txt with latest dependency versions
+- **Installation guide** - Enhanced installation instructions for Docker environment
+- **Deployment options** - Added both Docker and traditional installation methods
+- **Configuration examples** - Updated configuration examples for containerized deployment
+
+### 🔧 Technical Improvements / 技术改进
+- **Dependency management** - Updated all dependencies to latest stable versions
+- **Security enhancements** - Added security best practices for containerized deployment
+- **Performance optimization** - Optimized for containerized environment performance
+- **Logging improvements** - Enhanced logging for containerized deployment scenarios
+- **Error handling** - Improved error handling for containerized environment
+
+### 🚀 Deployment Enhancements / 部署增强
+- **Production ready** - Containerized deployment ready for production environments
+- **Development environment** - Easy local development with Docker Compose
+- **CI/CD integration** - Ready for continuous integration and deployment pipelines
+- **Monitoring support** - Container health monitoring and logging integration
+- **Scalability** - Designed for horizontal scaling in containerized environments
+
+---
+
+## v0.4.1 (2025-01-30) - Voice Recognition Logic Fixes & Streaming Implementation
 
 ### 🐛 Voice Recognition Logic Errors Fixed / 语音识别逻辑错误修复
 - **Empty text handling** - Fixed handling of empty recognition text from DingTalk
@@ -9,16 +42,29 @@
 - **Debug logging** - Added comprehensive debug logging for better troubleshooting
 - **Text encoding/decoding** - Fixed potential issues with text encoding/decoding
 
+### 🚀 Streaming Implementation / 流式输出实现
+- **Dify Streaming Support** - Added support for Dify's Server-Sent Events (SSE) streaming
+- **DingTalk SDK Integration** - Integrated with official DingTalk SDK methods
+- **Universal Streaming** - Streaming works for both text and voice messages
+- **Configurable Streaming** - Added environment variables for streaming control
+- **Official Card Creation** - Uses DingTalk's POST /v1.0/card/instances API to create cards
+- **Official Streaming API** - Uses DingTalk's PUT /v1.0/card/streaming API for true progressive streaming
+
 ### 🔧 Technical Improvements / 技术改进
 - **Enhanced VoiceRecognitionService** - Better input validation and error handling
 - **Improved extract_audio_data** - Added empty text detection and validation
 - **Updated convert_speech_to_text** - Better error handling for pre-recognized text
 - **Enhanced debug logging** - More detailed logging throughout voice processing pipeline
+- **Agent Instance Access** - Fixed agent access for streaming implementation
+- **Async Callback Support** - Proper async/await handling for streaming callbacks
+- **Official Card Creation API** - Implemented POST /v1.0/card/instances for card creation
+- **Official Streaming API** - Implemented PUT /v1.0/card/streaming for progressive updates
 
 ### 📝 Code Quality / 代码质量
 - **Better error messages** - More descriptive error messages for troubleshooting
 - **Input validation** - Added validation for empty or whitespace-only text
 - **Edge case handling** - Improved handling of edge cases in voice recognition
+- **Configuration-driven design** - Streaming behavior controlled by environment variables
 
 ---
 

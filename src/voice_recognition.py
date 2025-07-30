@@ -11,7 +11,7 @@ import tempfile
 import requests
 import base64
 from typing import Optional, Dict, Any
-from config import (
+from src.config import (
     DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET
 )
 

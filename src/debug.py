@@ -176,7 +176,7 @@ def setup_colored_logging():
     console_handler.setFormatter(formatter)
     
     # Set log level based on configuration
-    from config import LOG_LEVEL
+    from src.config import LOG_LEVEL
     log_level = getattr(logging, LOG_LEVEL.upper(), logging.INFO)
     console_handler.setLevel(log_level)
     
@@ -194,7 +194,7 @@ async def test_dingtalk_connection():
     Returns:
         bool: True if connection test passes, False otherwise
     """
-    from config import DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET
+    from src.config import DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET
     from dingtalk_stream import Credential, DingTalkStreamClient
     
     debug_logger = DebugLogger("DingTalkTest")
@@ -244,7 +244,7 @@ async def test_dify_connection():
     Returns:
         bool: True if connection test passes, False otherwise
     """
-    from config import DIFY_API_KEY, DIFY_BASE_URL
+    from src.config import DIFY_API_KEY, DIFY_BASE_URL
     
     debug_logger = DebugLogger("DifyTest")
     debug_logger.log_separator("DIFY CONNECTION TEST")

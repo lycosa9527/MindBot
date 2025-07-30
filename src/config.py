@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Version Information for the application
-VERSION = "v0.4.1"
-BUILD_DATE = "2025-01-30"
+VERSION = "v0.4.2"
+BUILD_DATE = "2025-01-31"
 
 # DingTalk Stream Mode Configuration
 # These are required for DingTalk WebSocket connection and message processing
@@ -21,6 +21,10 @@ DINGTALK_CLIENT_ID = os.getenv("DINGTALK_CLIENT_ID")
 DINGTALK_CLIENT_SECRET = os.getenv("DINGTALK_CLIENT_SECRET")
 DINGTALK_ROBOT_CODE = os.getenv("DINGTALK_ROBOT_CODE")
 DINGTALK_ROBOT_NAME = os.getenv("DINGTALK_ROBOT_NAME", "MindBot_poc")
+
+# DingTalk Card Template Configuration
+# This is required for AI card creation and streaming
+DINGTALK_CARD_TEMPLATE_ID = os.getenv("DINGTALK_CARD_TEMPLATE_ID", "c497adc7-0d7e-4662-976b-ab07b35332db.schema")
 
 # Dify Configuration for AI knowledge base integration
 # These connect to the Dify API for intelligent responses
@@ -41,6 +45,21 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Debug Configuration for development and troubleshooting
 DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() == "true"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+# Streaming Configuration
+ENABLE_STREAMING = os.getenv("ENABLE_STREAMING", "true").lower() == "true"
+# Note: Uses official DingTalk card creation API (POST /v1.0/card/instances) followed by streaming updates (PUT /v1.0/card/streaming)
+
+# Streaming Optimization Configuration
+STREAMING_MIN_CHUNK_SIZE = int(os.getenv("STREAMING_MIN_CHUNK_SIZE", "20"))  # Minimum characters before sending update
+STREAMING_UPDATE_DELAY = float(os.getenv("STREAMING_UPDATE_DELAY", "0.05"))  # Delay between updates (seconds)
+STREAMING_MAX_RETRIES = int(os.getenv("STREAMING_MAX_RETRIES", "3"))  # Maximum retry attempts for card creation
+STREAMING_RETRY_DELAY = float(os.getenv("STREAMING_RETRY_DELAY", "1.0"))  # Base delay for retries (seconds)
+
+# Fluid Streaming Configuration (for better user experience)
+ENABLE_FLUID_STREAMING = os.getenv("ENABLE_FLUID_STREAMING", "true").lower() == "true"  # Enable more frequent updates
+FLUID_STREAMING_MIN_CHUNK = int(os.getenv("FLUID_STREAMING_MIN_CHUNK", "10"))  # Smaller chunks for fluidity
+FLUID_STREAMING_DELAY = float(os.getenv("FLUID_STREAMING_DELAY", "0.02"))  # Reduced delay for responsiveness
 
 # Logging Levels Used in Application / 应用程序中使用的日志级别
 # 
@@ -135,6 +154,7 @@ logger.info(f"MindBot {VERSION} ({BUILD_DATE}) - Configuration loaded successful
 logger.debug(f"DingTalk Client ID: {DINGTALK_CLIENT_ID}")
 logger.debug(f"DingTalk Robot Code: {DINGTALK_ROBOT_CODE}")
 logger.debug(f"DingTalk Robot Name: {DINGTALK_ROBOT_NAME}")
+logger.debug(f"DingTalk Card Template ID: {DINGTALK_CARD_TEMPLATE_ID}")
 logger.debug(f"Dify API Key: {'***' if DIFY_API_KEY else 'NOT SET'}")
 logger.debug(f"Dify Base URL: {DIFY_BASE_URL}")
 logger.debug(f"Qwen API Key: {'***' if QWEN_API_KEY else 'NOT SET'}")
