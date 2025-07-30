@@ -17,5 +17,8 @@ QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 QWEN_MODEL=qwen3-0.6b
 
 # Optional Configuration
+# Set DEBUG_MODE=true and LOG_LEVEL=DEBUG for detailed troubleshooting
+# Set DEBUG_MODE=false and LOG_LEVEL=INFO for production use
+# Set LOG_LEVEL=WARNING to reduce console output
 DEBUG_MODE=false
 LOG_LEVEL=INFO 
