@@ -13,15 +13,13 @@ from datetime import datetime
 import uuid
 
 # Import local modules
-from config import *
+from config import VERSION, BUILD_DATE
 from debug import setup_colored_logging, run_diagnostics
 from dingtalk_client import MindBotDingTalkClient
 from agent import MindBotAgent
 from banner import display_banner
 
-# Version information for the application
-VERSION = "0.3"
-BUILD_DATE = "2025-07-30"
+# Version information imported from config
 
 # Setup professional colored logging for the entire application
 setup_colored_logging()

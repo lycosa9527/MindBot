@@ -30,10 +30,15 @@ def display_banner():
                               Made by MindSpring Team
 ================================================================================
 """
-    # Use logger instead of print for consistency
-    logger.info("MindBot banner displayed")
-    # Still print the banner for visual effect, but also log it
-    print(banner)
+    try:
+        # Use logger instead of print for consistency
+        logger.info("MindBot banner displayed")
+        # Still print the banner for visual effect, but also log it
+        print(banner)
+    except Exception as e:
+        # Fallback if banner display fails
+        logger.warning(f"Failed to display banner: {str(e)}")
+        logger.info("MindBot Stream Application Starting...")
 
 if __name__ == "__main__":
     display_banner() 
