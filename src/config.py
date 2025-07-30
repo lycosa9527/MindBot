@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Version Information for the application
-VERSION = "v0.4"
+VERSION = "v0.4.1"
 BUILD_DATE = "2025-01-30"
 
 # DingTalk Stream Mode Configuration

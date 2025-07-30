@@ -1,6 +1,49 @@
 # MindBot Changelog / MindBot 更新日志
 
-## v0.4 (2025-01-30) - Major Bug Fixes and Architecture Improvements
+## v0.4.1 (2025-01-30) - Voice Recognition Logic Fixes
+
+### 🐛 Voice Recognition Logic Errors Fixed / 语音识别逻辑错误修复
+- **Empty text handling** - Fixed handling of empty recognition text from DingTalk
+- **Better validation** - Added validation for empty recognition results
+- **Enhanced error handling** - Improved error handling for DingTalk's pre-recognized text
+- **Debug logging** - Added comprehensive debug logging for better troubleshooting
+- **Text encoding/decoding** - Fixed potential issues with text encoding/decoding
+
+### 🔧 Technical Improvements / 技术改进
+- **Enhanced VoiceRecognitionService** - Better input validation and error handling
+- **Improved extract_audio_data** - Added empty text detection and validation
+- **Updated convert_speech_to_text** - Better error handling for pre-recognized text
+- **Enhanced debug logging** - More detailed logging throughout voice processing pipeline
+
+### 📝 Code Quality / 代码质量
+- **Better error messages** - More descriptive error messages for troubleshooting
+- **Input validation** - Added validation for empty or whitespace-only text
+- **Edge case handling** - Improved handling of edge cases in voice recognition
+
+---
+
+## v0.4 (2025-01-30) - Voice Recognition and Major Bug Fixes
+
+### 🎤 Voice Recognition Feature / 语音识别功能
+
+#### Speech-to-Text Integration / 语音转文字集成
+- **DingTalk Official API** - Integrated DingTalk's speech recognition service for voice messages
+- **Fallback Services** - Added Google Speech Recognition and Sphinx offline recognition as alternatives
+- **Multi-format Support** - Supports WAV, MP3, M4A, AAC, OGG audio formats
+- **Automatic Detection** - Seamlessly detects and processes voice messages without user intervention
+- **Graceful Degradation** - Falls back to alternative services if primary DingTalk API fails
+
+#### Voice Processing Architecture / 语音处理架构
+- **VoiceRecognitionService** - New dedicated service for speech-to-text conversion
+- **Enhanced Message Handler** - Updated `MindBotChatbotHandler` to support both text and voice messages
+- **Unified Content Extraction** - Single method `_extract_message_content()` handles both text and voice
+- **Seamless Integration** - No changes required to existing AI agent logic or response handling
+
+#### Technical Implementation / 技术实现
+- **Async Processing** - Voice recognition runs asynchronously to maintain performance
+- **Memory Management** - Temporary audio file handling with automatic cleanup
+- **Error Handling** - Comprehensive error handling for audio processing and API failures
+- **Logging Integration** - Detailed logging for voice processing workflow and debugging
 
 ### 🐛 Critical Bug Fixes / 关键错误修复
 

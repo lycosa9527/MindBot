@@ -9,12 +9,13 @@ import logging
 import threading
 import hashlib
 import time
-from typing import Callable
+from typing import Callable, Optional
 from dingtalk_stream import DingTalkStreamClient, Credential, ChatbotHandler, ChatbotMessage, AckMessage
 from config import (
     DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE
 )
 from debug import DebugLogger
+from voice_recognition import VoiceRecognitionService
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,9 @@ class MindBotChatbotHandler(ChatbotHandler):
         self.agent_handler = agent_handler  # Callback to AI agent
         self.debug_logger = DebugLogger("MindBotChatbotHandler")
         
+        # Initialize voice recognition service
+        self.voice_service = VoiceRecognitionService()
+        
         # Initialize deduplication tracking with thread safety
         self._recent_messages = {}  # {message_hash: timestamp}
         self._dedup_lock = threading.Lock()
@@ -53,6 +57,7 @@ class MindBotChatbotHandler(ChatbotHandler):
         """
         Main message processing method required by ChatbotHandler.
         This is the official entry point for all incoming messages.
+        Supports both text and voice messages.
         
         Args:
             callback: CallbackMessage object from DingTalk SDK
@@ -63,16 +68,24 @@ class MindBotChatbotHandler(ChatbotHandler):
             # Extract ChatbotMessage from callback
             incoming_message = ChatbotMessage.from_dict(callback.data)
             
-            # Extract text content
-            text_content = incoming_message.text.content.strip()
-            if not text_content:
-                logger.warning("No text content found in message")
-                return AckMessage.STATUS_OK, "No text content"
+            # Debug: Log callback structure
+            logger.debug(f"Callback data: {callback.data}")
+            logger.debug(f"Callback type: {type(callback)}")
             
             # Extract user and conversation information
             user_id = incoming_message.sender_staff_id
             conversation_id = incoming_message.conversation_id
             message_id = incoming_message.message_id
+            
+            logger.debug(f"Message from user {user_id} in conversation {conversation_id}")
+            
+            # Process message content (text or voice)
+            text_content = await self._extract_message_content(incoming_message)
+            logger.debug(f"Extracted content: {text_content}")
+            
+            if not text_content:
+                logger.debug("No processable content found in message (normal for system messages, images, files, etc.)")
+                return AckMessage.STATUS_OK, "No processable content"
             
             # Log user message at INFO level for visibility
             logger.info(f"User {user_id} sent: {text_content}")
@@ -100,7 +113,9 @@ class MindBotChatbotHandler(ChatbotHandler):
             }
             
             # Call AI agent to generate response
+            logger.debug(f"Sending to Dify: {text_content}")
             response = await self.agent_handler(text_content, context)
+            logger.debug(f"Dify response: {response}")
             
             # Log workflow completion
             logger.info(f"Response sent to {user_id}")
@@ -116,6 +131,81 @@ class MindBotChatbotHandler(ChatbotHandler):
             return AckMessage.STATUS_ERROR, f"Error processing message: {str(e)}"
     
 
+    
+    async def _extract_message_content(self, incoming_message: ChatbotMessage) -> Optional[str]:
+        """
+        Extract content from message, handling both text and voice messages.
+        
+        Supported message types:
+        - Text messages: Direct text content
+        - Voice messages: Audio that gets transcribed to text
+        - Other types (images, files, cards, etc.): Ignored (normal)
+        
+        Args:
+            incoming_message: ChatbotMessage object from DingTalk
+            
+        Returns:
+            Text content from message or transcribed voice content
+        """
+        try:
+            # Convert message to dictionary for easier processing
+            message_data = incoming_message.to_dict()
+            
+            # Debug: Log message structure to understand what we're receiving
+            logger.debug(f"Message structure: {message_data}")
+            
+            # Check if this is a voice message
+            if self.voice_service.is_voice_message(message_data):
+                logger.info("Processing voice message")
+                
+                # Extract audio data from message
+                audio_data, audio_format = self.voice_service.extract_audio_data(message_data)
+                logger.debug(f"Extracted audio data: {type(audio_data)}, format: {audio_format}")
+                
+                if not audio_data:
+                    logger.warning("Voice message detected but no audio data found")
+                    return None
+                
+                # Convert speech to text
+                text_content = await self.voice_service.convert_speech_to_text(audio_data, audio_format)
+                logger.debug(f"Speech to text result: {text_content}")
+                
+                if text_content and text_content.strip():
+                    logger.info(f"Voice message transcribed: {text_content}")
+                    return text_content.strip()
+                else:
+                    logger.warning("Failed to transcribe voice message or empty result")
+                    return None
+            
+            # Handle text message (existing logic)
+            if hasattr(incoming_message, 'text') and incoming_message.text:
+                text_content = incoming_message.text.content.strip()
+                if text_content:
+                    return text_content
+            
+            # Debug: Log what we found in the message
+            message_type = message_data.get("message_type", "unknown")
+            logger.debug(f"Message type: {message_type}")
+            logger.debug(f"Message keys: {list(message_data.keys())}")
+            
+            # Check for other message types that we might want to handle
+            if "image" in message_data:
+                logger.info("Image message received (not supported)")
+                return None
+            elif "file" in message_data:
+                logger.info("File message received (not supported)")
+                return None
+            elif "card" in message_data:
+                logger.info("Card message received (not supported)")
+                return None
+            
+            # This is normal - DingTalk sends various message types
+            logger.debug("No text or voice content found in message (normal for system messages, images, files, etc.)")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error extracting message content: {str(e)}")
+            return None
     
     def _create_message_hash(self, user_id: str, conversation_id: str, text_content: str) -> str:
         """

@@ -22,6 +22,7 @@
 
 ### Core Features / 核心功能
 - 🚀 **Real-time Message Processing / 实时消息处理**: Instant response to DingTalk messages
+- 🎤 **Voice Recognition / 语音识别**: Automatic speech-to-text conversion for voice messages
 - 🤖 **AI-Powered Responses / AI 驱动回复**: Integration with Dify knowledge base
 - 📱 **Multi-Platform Support / 多平台支持**: Works with DingTalk mobile and desktop
 - 🔒 **Professional Logging / 专业日志**: Clean, colored console output
@@ -31,10 +32,31 @@
 ### Technical Features / 技术特性
 - ⚡ **Async/Await Architecture / 异步架构**: Modern Python async programming
 - 🌐 **WebSocket Communication / WebSocket 通信**: Real-time bidirectional messaging
+- 🎤 **Speech Recognition / 语音识别**: DingTalk official API + fallback services
 - 🔗 **HTTP API Integration / HTTP API 集成**: RESTful API calls to Dify
 - 🔐 **SSL/TLS Security / SSL/TLS 安全**: Secure connections with certificate validation
 - 🧵 **Thread Management / 线程管理**: Proper resource management and cleanup
 - ⚙️ **Configuration Management / 配置管理**: Environment-based configuration
+
+---
+
+## 🎤 Voice Recognition / 语音识别
+
+### Features / 功能
+- **DingTalk Official API**: Uses DingTalk's speech-to-text service
+- **Multi-format Support**: WAV, MP3, M4A, AAC, OGG
+- **Automatic Detection**: Seamlessly detects and processes voice messages
+- **No Dependencies**: Uses only standard Python libraries
+
+### Usage / 使用方法
+Voice messages are automatically processed when received. The system:
+1. Detects voice message content
+2. Extracts audio data
+3. Converts speech to text using DingTalk API
+4. Sends transcribed text to AI agent
+5. Returns AI response to user
+
+For detailed documentation, see [Voice Recognition Guide](docs/VOICE_RECOGNITION.md).
 
 ---
 
