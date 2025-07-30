@@ -62,6 +62,8 @@ class MessageHandler:
             message: Raw message object from DingTalk WebSocket
         """
         # Process message directly to avoid duplication
+        # This prevents the SDK from calling both __call__ and raw_process
+        logger.debug("MessageHandler.__call__ invoked")
         return self.raw_process(message)
     
     def raw_process(self, message):
@@ -73,6 +75,7 @@ class MessageHandler:
             message: Raw message object from DingTalk WebSocket
         """
         # Delegate to main processing to avoid calling on_message twice
+        logger.debug("MessageHandler.raw_process invoked")
         try:
             # Extract message data for processing
             if message is None:
@@ -84,8 +87,10 @@ class MessageHandler:
                 logger.error("Message object has no data attribute")
                 return None
                 
-            # Log only at debug level to reduce console verbosity
-            logger.debug(f"Received message from {message_data.get('senderStaffId', 'unknown')}: {message_data.get('text', {}).get('content', '')[:50]}...")
+            # Log user message at INFO level for visibility
+            user_message = message_data.get('text', {}).get('content', '')
+            user_id = message_data.get('senderStaffId', 'unknown')
+            logger.info(f"User {user_id} sent: {user_message}")
             
             # Return the coroutine for async processing
             return self.on_message(message_data)
@@ -119,7 +124,7 @@ class MessageHandler:
             
             # Check for duplicates with thread safety and TTL
             if self._is_duplicate_message(message_hash):
-                logger.info(f"Skipping duplicate message: {text_content[:30]}...")
+                logger.info(f"Duplicate detected - User {user_id}: {text_content}")
                 return
             
             # Add message to recent messages with timestamp
@@ -138,14 +143,14 @@ class MessageHandler:
                 "session_webhook": session_webhook
             }
             
-            # Log only at debug level to reduce console verbosity
+            # Log processing at debug level
             logger.debug(f"Processing message from user {user_id}: {text_content[:50]}...")
             
             # Call AI agent to generate response
             response = await self.agent_handler(text_content, context)
             
             # Log workflow completion at INFO level
-            logger.info(f"Message processed successfully - User: {user_id}, Response: {response[:50]}...")
+            logger.info(f"Response sent to {user_id}: {response[:100]}...")
             
             # Send response back to DingTalk via session webhook
             await self.send_reply(session_webhook, response)
