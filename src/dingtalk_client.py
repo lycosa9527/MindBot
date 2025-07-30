@@ -14,7 +14,7 @@ import threading
 import hashlib
 import time
 from typing import Callable, Dict, Any
-from dingtalk_stream import DingTalkStreamClient, Credential
+from dingtalk_stream import DingTalkStreamClient, Credential, ChatbotHandler, ChatbotMessage
 from config import (
     DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE, 
     DINGTALK_ROBOT_NAME, DINGTALK_MESSAGE_LIMIT, VERSION
@@ -23,10 +23,10 @@ from debug import DebugLogger
 
 logger = logging.getLogger(__name__)
 
-class MessageHandler:
+class MindBotChatbotHandler(ChatbotHandler):
     """
     Handles incoming messages from DingTalk Stream Mode.
-    This class processes raw WebSocket messages and extracts user content.
+    Extends the official ChatbotHandler for proper SDK integration.
     """
     
     def __init__(self, agent_handler: Callable):
@@ -36,8 +36,9 @@ class MessageHandler:
         Args:
             agent_handler: Function to call with processed messages
         """
+        super().__init__()
         self.agent_handler = agent_handler  # Callback to AI agent
-        self.debug_logger = DebugLogger("MessageHandler")
+        self.debug_logger = DebugLogger("MindBotChatbotHandler")
         
         # Initialize deduplication tracking with thread safety
         self._recent_messages = {}  # {message_hash: timestamp}
@@ -53,84 +54,40 @@ class MessageHandler:
         logger.info("MessageHandler pre_start called")
         # This method is required by the DingTalk SDK but not used in our implementation
         
-    def __call__(self, message):
+    async def process(self, callback):
         """
-        Main message processing method called by DingTalk SDK.
-        This is the entry point for all incoming messages.
+        Main message processing method required by ChatbotHandler.
+        This is the official entry point for all incoming messages.
         
         Args:
-            message: Raw message object from DingTalk WebSocket
-        """
-        # Process message directly to avoid duplication
-        # This prevents the SDK from calling both __call__ and raw_process
-        logger.debug("MessageHandler.__call__ invoked")
-        return self.raw_process(message)
-    
-    def raw_process(self, message):
-        """
-        Raw message processing method required by DingTalk SDK.
-        This delegates to the main processing method to avoid duplication.
-        
-        Args:
-            message: Raw message object from DingTalk WebSocket
-        """
-        # Delegate to main processing to avoid calling on_message twice
-        logger.debug("MessageHandler.raw_process invoked")
-        try:
-            # Extract message data for processing
-            if message is None:
-                logger.error("Received None message object")
-                return None
-            
-            message_data = getattr(message, 'data', None)
-            if message_data is None:
-                logger.error("Message object has no data attribute")
-                return None
-                
-            # Log user message at INFO level for visibility
-            user_message = message_data.get('text', {}).get('content', '')
-            user_id = message_data.get('senderStaffId', 'unknown')
-            logger.info(f"User {user_id} sent: {user_message}")
-            
-            # Debug: Log message structure for analysis
-            logger.debug(f"Message data keys: {list(message_data.keys())}")
-            if 'msgId' in message_data:
-                logger.debug(f"DingTalk message ID: {message_data.get('msgId')}")
-            if 'conversationId' in message_data:
-                logger.debug(f"Conversation ID: {message_data.get('conversationId')}")
-            
-            # Return the coroutine for async processing
-            # This ensures proper acknowledgment to DingTalk SDK
-            return self.on_message(message_data)
-            
-        except Exception as e:
-            logger.error(f"Error in raw_process: {str(e)}")
-            return None
-    
-    async def on_message(self, message_data: Dict[str, Any]):
-        """
-        Process incoming message data and generate AI response.
-        
-        Args:
-            message_data: Parsed message data from DingTalk
+            callback: CallbackMessage object from DingTalk SDK
         """
         try:
-            # Extract text content from nested message structure
-            # DingTalk messages have structure: data.text.content
-            text_content = message_data.get("text", {}).get("content", "")
+            logger.debug("MindBotChatbotHandler.process invoked")
             
+            # Extract ChatbotMessage from callback
+            incoming_message = ChatbotMessage.from_dict(callback.data)
+            
+            # Extract text content
+            text_content = incoming_message.text.content.strip()
             if not text_content:
                 logger.warning("No text content found in message")
-                return
+                return AckMessage.STATUS_OK, "No text content"
             
-            # Extract user and conversation information for deduplication
-            user_id = message_data.get("senderStaffId", "unknown")
-            conversation_id = message_data.get("conversationId", "")
+            # Extract user and conversation information
+            user_id = incoming_message.sender_staff_id
+            conversation_id = incoming_message.conversation_id
+            message_id = incoming_message.msg_id
             
-            # Check if DingTalk provides a unique message ID
-            message_id = message_data.get("msgId", "")
+            # Log user message at INFO level for visibility
+            logger.info(f"User {user_id} sent: {text_content}")
+            
+            # Debug: Log message structure for analysis
+            logger.debug(f"Message ID: {message_id}")
+            logger.debug(f"Conversation ID: {conversation_id}")
+            
+            # Use DingTalk's message ID for deduplication
             if message_id:
-                # Use DingTalk's message ID for deduplication
                 message_hash = message_id
                 logger.debug(f"Using DingTalk message ID: {message_id}")
             else:
@@ -141,28 +98,20 @@ class MessageHandler:
             # Check for duplicates with thread safety and TTL
             if self._is_duplicate_message(message_hash):
                 logger.info(f"Duplicate detected - User {user_id}: {text_content}")
-                # Return acknowledgment for duplicate to prevent retries
-                from dingtalk_stream import AckMessage
                 return AckMessage.STATUS_OK, "Duplicate message acknowledged"
             
             # Add message to recent messages with timestamp
             self._add_recent_message(message_hash)
             
-            # Extract session webhook for sending replies
-            session_webhook = message_data.get("sessionWebhook", "")
-            if not session_webhook:
-                logger.error("No session webhook found in message")
-                return
+            # Log processing at debug level
+            logger.debug(f"Processing message from user {user_id}: {text_content[:50]}...")
             
             # Create context for AI agent
             context = {
                 "user_id": user_id,
                 "conversation_id": conversation_id,
-                "session_webhook": session_webhook
+                "session_webhook": incoming_message.session_webhook
             }
-            
-            # Log processing at debug level
-            logger.debug(f"Processing message from user {user_id}: {text_content[:50]}...")
             
             # Call AI agent to generate response
             response = await self.agent_handler(text_content, context)
@@ -170,25 +119,17 @@ class MessageHandler:
             # Log workflow completion at INFO level
             logger.info(f"Response sent to {user_id}: {response[:100]}...")
             
-            # Send response back to DingTalk via session webhook
-            await self.send_reply(session_webhook, response)
+            # Use official SDK method to send reply
+            self.reply_text(response, incoming_message)
             
-            # Return success acknowledgment to DingTalk SDK
-            # This prevents DingTalk from retrying the message
-            from dingtalk_stream import AckMessage
+            # Return success acknowledgment
             return AckMessage.STATUS_OK, "Message processed successfully"
             
         except Exception as e:
             logger.error(f"Error processing message: {str(e)}")
-            # Try to send error response if possible
-            session_webhook = message_data.get("sessionWebhook", "")
-            if session_webhook:
-                logger.info(f"Sending error response to user: {user_id}")
-                await self.send_error_response(session_webhook)
-            
-            # Return error acknowledgment to DingTalk SDK
-            from dingtalk_stream import AckMessage
             return AckMessage.STATUS_ERROR, f"Error processing message: {str(e)}"
+    
+
     
     def _create_message_hash(self, user_id: str, conversation_id: str, text_content: str) -> str:
         """
@@ -262,59 +203,7 @@ class MessageHandler:
                 )
                 self._recent_messages = dict(sorted_messages[:self._max_recent_messages // 2])
     
-    async def send_reply(self, session_webhook: str, message: str):
-        """
-        Send reply message to DingTalk via session webhook.
-        
-        Args:
-            session_webhook: Webhook URL for sending replies
-            message: Response message to send
-        """
-        try:
-            # Validate message length to prevent API errors
-            if len(message) > DINGTALK_MESSAGE_LIMIT:
-                message = message[:DINGTALK_MESSAGE_LIMIT] + "..."
-                logger.warning(f"Message truncated to {DINGTALK_MESSAGE_LIMIT} characters")
-            
-            # Prepare payload for DingTalk message API
-            payload = {
-                "msgtype": "text",
-                "text": {
-                    "content": message
-                }
-            }
-            
-            # Set up headers for HTTP request
-            headers = {
-                "Content-Type": "application/json"
-            }
-            
-            logger.debug(f"Sending reply via webhook: {message[:50]}...")
-            
-            # Send HTTP POST request to session webhook
-            async with aiohttp.ClientSession() as session:
-                async with session.post(session_webhook, json=payload, headers=headers) as response:
-                    if response.status == 200:
-                        logger.debug("Reply sent successfully")
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Failed to send reply: {response.status} - {error_text}")
-                        
-        except Exception as e:
-            logger.error(f"Error sending reply: {str(e)}")
-    
-    async def send_error_response(self, session_webhook: str, error_message: str = "I'm sorry, I encountered an error processing your message."):
-        """
-        Send error response to user when message processing fails.
-        
-        Args:
-            session_webhook: Webhook URL for sending replies
-            error_message: Error message to send to user
-        """
-        try:
-            await self.send_reply(session_webhook, error_message)
-        except Exception as e:
-            logger.error(f"Failed to send error response: {e}")
+
 
 class MindBotDingTalkClient:
     """
@@ -363,12 +252,12 @@ class MindBotDingTalkClient:
             self.client = DingTalkStreamClient(credential)
             
             # Create message handler for processing incoming messages
-            message_handler = MessageHandler(self.agent_handler)
+            message_handler = MindBotChatbotHandler(self.agent_handler)
             
             # Register message handler with the client
-            # This connects to the specific topic for bot messages
+            # Use the official ChatbotMessage topic for proper SDK integration
             self.client.register_callback_handler(
-                "/v1.0/im/bot/messages/get", 
+                ChatbotMessage.TOPIC, 
                 message_handler
             )
             
