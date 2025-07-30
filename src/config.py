@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Version Information for the application
-VERSION = "v0.3"
-BUILD_DATE = "2025-07-30"
+VERSION = "v0.4"
+BUILD_DATE = "2025-01-30"
 
 # DingTalk Stream Mode Configuration
 # These are required for DingTalk WebSocket connection and message processing

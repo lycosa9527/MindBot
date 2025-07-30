@@ -1,8 +1,8 @@
-# MindBot v0.3 - Intelligent DingTalk Chatbot / 智能钉钉聊天机器人
+# MindBot v0.4 - Intelligent DingTalk Chatbot / 智能钉钉聊天机器人
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3-orange.svg)](https://github.com/lycosa9527/MindBot/releases)
+[![Version](https://img.shields.io/badge/Version-0.4-orange.svg)](https://github.com/lycosa9527/MindBot/releases)
 [![WakaTime](https://wakatime.com/badge/user/60ba0518-3829-457f-ae10-3eff184d5f69/project/707446f2-b1e2-4f2d-8f57-53d016ce3302.svg)](https://wakatime.com/@60ba0518-3829-457f-ae10-3eff184d5f69/projects/707446f2-b1e2-4f2d-8f57-53d016ce3302)
 
 ---
@@ -13,8 +13,8 @@
 
 **中文**: MindBot 是一个基于 Dify API 的智能钉钉聊天机器人，专为教育辅助和教学支持而设计。应用程序使用钉钉的 Stream Mode 进行实时消息处理，并集成 Dify 知识库以提供智能回复。
 
-**Version / 版本**: v0.3  
-**Build Date / 构建日期**: 2025-07-30
+**Version / 版本**: v0.4  
+**Build Date / 构建日期**: 2025-01-30
 
 ---
 
@@ -54,14 +54,14 @@ cd MindBot
 ```
 
 **2. Install Dependencies / 安装依赖**
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 **3. Configure Environment / 配置环境**
-```bash
+   ```bash
 # Copy environment template
-cp config/env_example.txt .env
+   cp config/env_example.txt .env
 
 # Edit with your credentials
 nano .env
@@ -222,9 +222,9 @@ mindbot_poc/
 **English**: Run system diagnostics:
 **中文**: 运行系统诊断：
 
-```bash
-python run.py
-```
+   ```bash
+   python run.py
+   ```
 
 **English**: Check configuration:
 **中文**: 检查配置：

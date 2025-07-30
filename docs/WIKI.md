@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.3-orange.svg)](https://github.com/lycosa9527/MindBot/releases)
+[![Version](https://img.shields.io/badge/Version-0.4-orange.svg)](https://github.com/lycosa9527/MindBot/releases)
 [![WakaTime](https://wakatime.com/badge/user/60ba0518-3829-457f-ae10-3eff184d5f69/project/707446f2-b1e2-4f2d-8f57-53d016ce3302.svg)](https://wakatime.com/@60ba0518-3829-457f-ae10-3eff184d5f69/projects/707446f2-b1e2-4f2d-8f57-53d016ce3302)
 
 ## 📋 Table of Contents / 目录
@@ -555,6 +555,16 @@ src/
 
 ## 📝 Changelog / 更新日志
 
+### v0.4 (2025-01-30)
+- ✅ **Fixed critical DingTalk SDK duplication issues** - Implemented proper message acknowledgments to prevent server-side retries / 修复关键的钉钉 SDK 重复问题 - 实现正确的消息确认以防止服务器端重试
+- ✅ **Refactored DingTalk client architecture** - Migrated from custom handler to official `ChatbotHandler` for proper SDK integration / 重构钉钉客户端架构 - 从自定义处理器迁移到官方 `ChatbotHandler` 以实现正确的 SDK 集成
+- ✅ **Enhanced message deduplication system** - Added hash-based deduplication with TTL and thread-safe operations / 增强消息去重系统 - 添加基于哈希的去重，支持 TTL 和线程安全操作
+- ✅ **Improved console logging consolidation** - Reduced redundant logs and optimized message flow visibility / 改进控制台日志整合 - 减少冗余日志并优化消息流可见性
+- ✅ **Updated AI model configuration** - Changed Qwen model from `qwen-turbo-latest` to `qwen3-0.6b` for better performance / 更新 AI 模型配置 - 将 Qwen 模型从 `qwen-turbo-latest` 更改为 `qwen3-0.6b` 以获得更好的性能
+- ✅ **Enhanced error handling and recovery** - Better exception management and graceful degradation / 增强错误处理和恢复 - 更好的异常管理和优雅降级
+- ✅ **Professional documentation updates** - Bilingual README and comprehensive changelog / 专业文档更新 - 双语 README 和全面的更新日志
+- ✅ **Git workflow improvements** - Added `.gitattributes` for cross-platform line ending standardization / Git 工作流改进 - 添加 `.gitattributes` 以实现跨平台行尾标准化
+
 ### v0.3 (2025-07-30)
 - ✅ **Enhanced console logging** with level-only coloring for professional appearance / 增强控制台日志，仅对级别进行着色以获得专业外观
 - ✅ **Fixed critical logic errors** in logging system propagation / 修复日志系统传播中的关键逻辑错误
@@ -619,6 +629,6 @@ src/
 
 ---
 
-**Last Updated / 最后更新**: July 30, 2025 / 2025年7月30日  
-**Version / 版本**: v0.3  
+**Last Updated / 最后更新**: January 30, 2025 / 2025年1月30日  
+**Version / 版本**: v0.4  
 **Maintainer / 维护者**: MindSpring Team / MindSpring 团队 
