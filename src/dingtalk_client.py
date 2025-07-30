@@ -10,7 +10,7 @@ import threading
 import hashlib
 import time
 from typing import Callable
-from dingtalk_stream import DingTalkStreamClient, Credential, ChatbotHandler, ChatbotMessage
+from dingtalk_stream import DingTalkStreamClient, Credential, ChatbotHandler, ChatbotMessage, AckMessage
 from config import (
     DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE
 )
@@ -72,7 +72,7 @@ class MindBotChatbotHandler(ChatbotHandler):
             # Extract user and conversation information
             user_id = incoming_message.sender_staff_id
             conversation_id = incoming_message.conversation_id
-            message_id = incoming_message.msg_id
+            message_id = incoming_message.message_id
             
             # Log user message at INFO level for visibility
             logger.info(f"User {user_id} sent: {text_content}")
