@@ -59,7 +59,7 @@ class MindBotAgent:
             # Call Dify API directly for knowledge-based responses
             # This bypasses complex agent systems for simplicity and reliability
             try:
-                logger.info("Calling Dify API...")
+                logger.debug("Calling Dify API...")
                 response = await self.dify_client.chat_completion(original_message, user_id)
                 
                 # Validate Dify response to ensure quality output
@@ -72,7 +72,7 @@ class MindBotAgent:
                     logger.error(f"Dify API error: {response}")
                     return "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later."
                 
-                logger.info(f"Dify response: {response[:100]}...")
+                logger.debug(f"Dify response: {response[:50]}...")
                 return response
             except Exception as dify_error:
                 logger.error(f"Dify API call failed: {str(dify_error)}")

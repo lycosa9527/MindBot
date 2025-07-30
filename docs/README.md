@@ -1,14 +1,14 @@
-# MindBot POC v0.2 - DingTalk Chatbot
+# MindBot POC v0.3 - DingTalk Chatbot
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.2-orange.svg)](https://github.com/lycosa9527/MindBot/releases)
+[![Version](https://img.shields.io/badge/Version-0.3-orange.svg)](https://github.com/lycosa9527/MindBot/releases)
 [![WakaTime](https://wakatime.com/badge/user/60ba0518-3829-457f-ae10-3eff184d5f69/project/707446f2-b1e2-4f2d-8f57-53d016ce3302.svg)](https://wakatime.com/@60ba0518-3829-457f-ae10-3eff184d5f69/projects/707446f2-b1e2-4f2d-8f57-53d016ce3302)
 
 A proof-of-concept DingTalk chatbot that integrates with Dify API using LangChain agents.
 
-**Version:** v0.2  
-**Build Date:** 2024-01-20
+**Version:** v0.3  
+**Build Date:** 2025-07-30
 
 📖 **For detailed documentation, see [WIKI.md](WIKI.md)**
 
@@ -74,7 +74,7 @@ mindbot_poc/
    # Qwen Configuration (Optional)
    QWEN_API_KEY=your_actual_qwen_api_key
    QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-   QWEN_MODEL=qwen-turbo-latest
+       QWEN_MODEL=qwen3-0.6b
    ```
 
 3. **Configuration**:

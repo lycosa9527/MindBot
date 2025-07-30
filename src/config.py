@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Version Information for the application
-VERSION = "v0.2"
-BUILD_DATE = "2024-01-20"
+VERSION = "v0.3"
+BUILD_DATE = "2025-07-30"
 
 # DingTalk Stream Mode Configuration
 # These are required for DingTalk WebSocket connection and message processing
@@ -32,15 +32,15 @@ DIFY_WORKSPACE_ID = os.getenv("DIFY_WORKSPACE_ID")
 # These connect to Alibaba's Qwen model for AI responses
 QWEN_API_KEY = os.getenv("QWEN_API_KEY")
 QWEN_BASE_URL = os.getenv("QWEN_BASE_URL")
-QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen-turbo-latest")
+QWEN_MODEL = os.getenv("QWEN_MODEL", "qwen3-0.6b")
 
 # OpenAI Configuration (kept for backward compatibility)
 # This allows switching to OpenAI if needed in the future
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Debug Configuration for development and troubleshooting
-DEBUG_MODE = os.getenv("DEBUG_MODE", "true").lower() == "true"
-LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
+DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() == "true"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 # Application Constants for limits and validation
 # These prevent resource exhaustion and ensure security

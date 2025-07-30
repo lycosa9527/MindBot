@@ -68,16 +68,16 @@ class DifyClient:
             }
             
             # Log request details for debugging (without sensitive data)
-            logger.info(f"Dify API URL: {url}")
-            logger.info(f"User ID: {user_id}")
-            logger.info(f"Message: {message[:50]}...")
+            logger.debug(f"Dify API URL: {url}")
+            logger.debug(f"User ID: {user_id}")
+            logger.debug(f"Message: {message[:50]}...")
             
             # Make HTTP POST request to Dify API with increased timeout
             timeout = aiohttp.ClientTimeout(total=60, connect=30)
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(url, headers=headers, json=payload) as response:
                     # Log response status for debugging
-                    logger.info(f"Dify API Response Status: {response.status}")
+                    logger.debug(f"Dify API Response Status: {response.status}")
                     
                     # Check if request was successful
                     if response.status != 200:
@@ -88,7 +88,7 @@ class DifyClient:
                     # Parse JSON response from Dify
                     try:
                         response_data = await response.json()
-                        logger.info(f"Dify API Response: {json.dumps(response_data, indent=2)}")
+                        logger.debug(f"Dify API Response received (length: {len(json.dumps(response_data))} chars)")
                     except ValueError as json_error:
                         logger.error(f"Failed to parse Dify JSON response: {json_error}")
                         return "Error: Invalid response format from Dify API"
@@ -107,7 +107,7 @@ class DifyClient:
                         logger.warning("Dify returned empty or whitespace-only answer")
                         return "I'm sorry, I couldn't generate a response. Please try again."
                     
-                    logger.info(f"Dify answer: {answer[:100]}...")
+                    logger.debug(f"Dify response: {answer[:50]}...")
                     return answer.strip()
                     
         except aiohttp.ClientError as e:

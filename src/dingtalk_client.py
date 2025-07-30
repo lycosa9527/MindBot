@@ -53,7 +53,7 @@ class MessageHandler:
         Args:
             message: Raw message object from DingTalk WebSocket
         """
-        # Delegate to raw_process to avoid duplication
+        # Process message directly to avoid duplication
         return self.raw_process(message)
     
     def raw_process(self, message):
@@ -76,7 +76,7 @@ class MessageHandler:
                 logger.error("Message object has no data attribute")
                 return None
                 
-            logger.info(f"Received message: {json.dumps(message_data, indent=2)}")
+            logger.info(f"Received message from {message_data.get('senderStaffId', 'unknown')}: {message_data.get('text', {}).get('content', '')[:50]}...")
             
             # Return the coroutine for async processing
             return self.on_message(message_data)
@@ -129,12 +129,9 @@ class MessageHandler:
         except Exception as e:
             logger.error(f"Error processing message: {str(e)}")
             # Try to send error response if possible
-            try:
-                session_webhook = message_data.get("sessionWebhook", "")
-                if session_webhook:
-                    await self.send_reply(session_webhook, "I'm sorry, I encountered an error processing your message.")
-            except Exception as send_error:
-                logger.error(f"Failed to send error response: {send_error}")
+            session_webhook = message_data.get("sessionWebhook", "")
+            if session_webhook:
+                await self.send_error_response(session_webhook)
     
     async def send_reply(self, session_webhook: str, message: str):
         """
@@ -163,19 +160,32 @@ class MessageHandler:
                 "Content-Type": "application/json"
             }
             
-            logger.info(f"Sending reply via webhook: {message[:50]}...")
+            logger.debug(f"Sending reply via webhook: {message[:50]}...")
             
             # Send HTTP POST request to session webhook
             async with aiohttp.ClientSession() as session:
                 async with session.post(session_webhook, json=payload, headers=headers) as response:
                     if response.status == 200:
-                        logger.info("Reply sent successfully")
+                        logger.debug("Reply sent successfully")
                     else:
                         error_text = await response.text()
                         logger.error(f"Failed to send reply: {response.status} - {error_text}")
                         
         except Exception as e:
             logger.error(f"Error sending reply: {str(e)}")
+    
+    async def send_error_response(self, session_webhook: str, error_message: str = "I'm sorry, I encountered an error processing your message."):
+        """
+        Send error response to user when message processing fails.
+        
+        Args:
+            session_webhook: Webhook URL for sending replies
+            error_message: Error message to send to user
+        """
+        try:
+            await self.send_reply(session_webhook, error_message)
+        except Exception as e:
+            logger.error(f"Failed to send error response: {e}")
 
 class MindBotDingTalkClient:
     """

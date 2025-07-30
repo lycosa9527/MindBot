@@ -32,25 +32,31 @@ class ColoredFormatter(logging.Formatter):
     
     def format(self, record):
         """
-        Format log record with colors and structured layout.
+        Format log record with only the logging level colored.
         
         Args:
             record: LogRecord object containing message details
             
         Returns:
-            Formatted log message with colors
+            Formatted log message with only level name colored
         """
-        # Add timestamp in gray color
-        timestamp = Fore.LIGHTBLACK_EX + f"[{datetime.now().strftime('%H:%M:%S')}]"
+        # Add timestamp in plain text (using record creation time for better performance)
+        try:
+            timestamp = f"[{datetime.fromtimestamp(record.created).strftime('%H:%M:%S')}]"
+        except (ValueError, OSError):
+            # Fallback to current time if record.created is invalid
+            timestamp = f"[{datetime.now().strftime('%H:%M:%S')}]"
         
-        # Add colored level name
-        level_color = self.COLORS.get(record.levelname, Fore.WHITE)
-        level_name = level_color + Style.BRIGHT + f"[{record.levelname}]"
+        # Add colored level name only
+        level_name_safe = record.levelname or "UNKNOWN"
+        level_color = self.COLORS.get(level_name_safe, Fore.WHITE)
+        level_name = level_color + Style.BRIGHT + f"[{level_name_safe}]" + Style.RESET_ALL
         
-        # Add component name in bold cyan
-        component = Fore.CYAN + Style.BRIGHT + f"[{record.name}]"
+        # Add component name in plain text
+        component_name_safe = record.name or "unknown"
+        component = f"[{component_name_safe}]"
         
-        # Format the actual message
+        # Format the actual message in plain text
         message = f"{record.getMessage()}"
         
         # Combine all parts with proper spacing
@@ -71,35 +77,37 @@ class DebugLogger:
         Args:
             component_name: Name of the component for logging identification
         """
+        if not component_name or not isinstance(component_name, str):
+            component_name = "unknown"
         self.component_name = component_name
         self.logger = logging.getLogger(component_name)
     
     def log_success(self, message: str):
         """
-        Log a success message with green color and checkmark.
+        Log a success message.
         
         Args:
             message: Success message to log
         """
-        self.logger.info(f"{Fore.GREEN}[SUCCESS]{Style.RESET_ALL} {message}")
+        self.logger.info(f"[SUCCESS] {message}")
     
     def log_failure(self, message: str):
         """
-        Log a failure message with red color and X mark.
+        Log a failure message.
         
         Args:
             message: Failure message to log
         """
-        self.logger.error(f"{Fore.RED}[FAILURE]{Style.RESET_ALL} {message}")
+        self.logger.error(f"[FAILURE] {message}")
     
     def log_step(self, message: str):
         """
-        Log a step message with blue color and arrow.
+        Log a step message.
         
         Args:
             message: Step message to log
         """
-        self.logger.info(f"{Fore.BLUE}[STEP]{Style.RESET_ALL} {message}")
+        self.logger.info(f"[STEP] {message}")
     
     def log_separator(self, title: str):
         """
@@ -108,7 +116,7 @@ class DebugLogger:
         Args:
             title: Title to display in the separator
         """
-        separator = f"{Fore.MAGENTA}━━━ {title} ━━━{Style.RESET_ALL}"
+        separator = f"━━━ {title} ━━━"
         self.logger.info(separator)
     
     def log_info(self, message: str):
@@ -155,9 +163,10 @@ def setup_colored_logging():
     # Get the root logger to configure global logging
     root_logger = logging.getLogger()
     
-    # Clear any existing handlers to prevent duplicate logging
+    # Clear only console handlers to prevent duplicate logging
     for handler in root_logger.handlers[:]:
-        root_logger.removeHandler(handler)
+        if isinstance(handler, logging.StreamHandler):
+            root_logger.removeHandler(handler)
     
     # Create console handler for colored output
     console_handler = logging.StreamHandler()
@@ -166,15 +175,17 @@ def setup_colored_logging():
     formatter = ColoredFormatter()
     console_handler.setFormatter(formatter)
     
-    # Set log level to DEBUG for comprehensive logging
-    console_handler.setLevel(logging.DEBUG)
+    # Set log level based on configuration
+    from config import LOG_LEVEL
+    log_level = getattr(logging, LOG_LEVEL.upper(), logging.INFO)
+    console_handler.setLevel(log_level)
     
     # Add handler to root logger
     root_logger.addHandler(console_handler)
     root_logger.setLevel(logging.DEBUG)
     
-    # Disable propagation to prevent duplicate messages
-    root_logger.propagate = False
+    # Enable propagation to ensure child loggers inherit configuration
+    root_logger.propagate = True
 
 async def test_dingtalk_connection():
     """
@@ -306,8 +317,9 @@ async def test_network_connectivity():
         try:
             debug_logger.log_step(f"Testing connection to {url}...")
             # Increased timeout from 10 to 30 seconds for better reliability
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=30) as response:
+            timeout = aiohttp.ClientTimeout(total=30)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(url) as response:
                     if response.status == 200:
                         debug_logger.log_success(f"Connection to {url} successful")
                         success_count += 1

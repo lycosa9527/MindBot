@@ -20,8 +20,8 @@ from agent import MindBotAgent
 from banner import display_banner
 
 # Version information for the application
-VERSION = "0.2"
-BUILD_DATE = "2024-01-20"
+VERSION = "0.3"
+BUILD_DATE = "2025-07-30"
 
 # Setup professional colored logging for the entire application
 setup_colored_logging()
@@ -112,7 +112,7 @@ class MindBotStreamApp:
                 logger.warning("Agent returned empty response")
                 return "I'm sorry, I couldn't generate a response. Please try again."
             
-            logger.info(f"Generated response: {response[:50]}...")
+            logger.debug(f"Generated response: {response[:50]}...")
             return response
             
         except Exception as e:
