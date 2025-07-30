@@ -101,6 +101,27 @@ class MessageHandler:
                 logger.warning("No text content found in message")
                 return
             
+            # Create a unique message identifier for deduplication
+            user_id = message_data.get("senderStaffId", "unknown")
+            conversation_id = message_data.get("conversationId", "")
+            message_id = f"{user_id}:{conversation_id}:{text_content[:50]}"
+            
+            # Check if we've recently processed this exact message
+            if hasattr(self, 'recent_messages') and message_id in self.recent_messages:
+                logger.info(f"Skipping duplicate message: {text_content[:30]}...")
+                return
+            
+            # Add to recent messages (simple deduplication)
+            if not hasattr(self, 'recent_messages'):
+                self.recent_messages = set()
+            self.recent_messages.add(message_id)
+            
+            # Keep only last 50 messages to prevent memory growth
+            if len(self.recent_messages) > 50:
+                # Convert to list, remove oldest, convert back to set
+                recent_list = list(self.recent_messages)
+                self.recent_messages = set(recent_list[-25:])
+            
             # Extract session webhook for sending replies
             session_webhook = message_data.get("sessionWebhook", "")
             if not session_webhook:
