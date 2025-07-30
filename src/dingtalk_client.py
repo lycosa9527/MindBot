@@ -5,19 +5,14 @@ Handles real-time message reception and sending via DingTalk Stream Mode
 """
 
 import asyncio
-import aiohttp
-import json
 import logging
-import ssl
-import certifi
 import threading
 import hashlib
 import time
-from typing import Callable, Dict, Any
+from typing import Callable
 from dingtalk_stream import DingTalkStreamClient, Credential, ChatbotHandler, ChatbotMessage
 from config import (
-    DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE, 
-    DINGTALK_ROBOT_NAME, DINGTALK_MESSAGE_LIMIT, VERSION
+    DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE
 )
 from debug import DebugLogger
 
@@ -51,7 +46,7 @@ class MindBotChatbotHandler(ChatbotHandler):
         Called before the stream starts - required by DingTalk stream library.
         This method is called by the library before starting the stream.
         """
-        logger.info("MessageHandler pre_start called")
+        logger.info("MindBotChatbotHandler pre_start called")
         # This method is required by the DingTalk SDK but not used in our implementation
         
     async def process(self, callback):
