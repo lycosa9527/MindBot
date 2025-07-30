@@ -144,6 +144,9 @@ class MessageHandler:
             # Call AI agent to generate response
             response = await self.agent_handler(text_content, context)
             
+            # Log workflow completion at INFO level
+            logger.info(f"Message processed successfully - User: {user_id}, Response: {response[:50]}...")
+            
             # Send response back to DingTalk via session webhook
             await self.send_reply(session_webhook, response)
             
@@ -152,6 +155,7 @@ class MessageHandler:
             # Try to send error response if possible
             session_webhook = message_data.get("sessionWebhook", "")
             if session_webhook:
+                logger.info(f"Sending error response to user: {user_id}")
                 await self.send_error_response(session_webhook)
     
     def _create_message_hash(self, user_id: str, conversation_id: str, text_content: str) -> str:

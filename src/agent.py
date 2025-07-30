@@ -74,7 +74,8 @@ class MindBotAgent:
                     logger.error(f"Dify API error: {response}")
                     return "I'm sorry, I'm having trouble connecting to my knowledge base right now. Please try again later."
                 
-                logger.info(f"Dify response: {response[:50]}...")
+                # Log only at debug level to reduce console verbosity
+                logger.debug(f"Dify response: {response[:50]}...")
                 return response
             except Exception as dify_error:
                 logger.error(f"Dify API call failed: {str(dify_error)}")

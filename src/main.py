@@ -114,6 +114,7 @@ class MindBotStreamApp:
                 logger.warning("Agent returned empty response")
                 return "I'm sorry, I couldn't generate a response. Please try again."
             
+            # Log only at debug level to reduce console verbosity
             logger.debug(f"Generated response: {response[:50]}...")
             return response
             
