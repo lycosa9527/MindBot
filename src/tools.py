@@ -22,8 +22,8 @@ class DifyChatTool(BaseTool):
     This tool enables the AI agent to access external knowledge bases.
     """
     
-    name = "dify_chat"
-    description = "Send a message to Dify API for intelligent responses"
+    name: str = "dify_chat"
+    description: str = "Send a message to Dify API for intelligent responses"
     
     def __init__(self, dify_client):
         """
@@ -34,6 +34,19 @@ class DifyChatTool(BaseTool):
         """
         super().__init__()
         self.dify_client = dify_client
+    
+    def _run(self, message: str) -> str:
+        """
+        Synchronously send a message to Dify API.
+        
+        Args:
+            message: The message to send to Dify
+            
+        Returns:
+            The response from Dify API
+        """
+        import asyncio
+        return asyncio.run(self._arun(message))
     
     async def _arun(self, message: str) -> str:
         """
@@ -69,8 +82,21 @@ class GetTimeTool(BaseTool):
     Provides time-related information to users.
     """
     
-    name = "get_time"
-    description = "Get the current time and date"
+    name: str = "get_time"
+    description: str = "Get the current time and date"
+    
+    def _run(self, query: str = "") -> str:
+        """
+        Get current time and date information synchronously.
+        
+        Args:
+            query: Optional query string (not used for time tool)
+            
+        Returns:
+            Formatted time and date information
+        """
+        import asyncio
+        return asyncio.run(self._arun(query))
     
     async def _arun(self, query: str = "") -> str:
         """
@@ -109,13 +135,13 @@ class GetUserInfoTool(BaseTool):
     Provides user-specific information when available.
     """
     
-    name = "get_user_info"
-    description = "Get information about the current user"
+    name: str = "get_user_info"
+    description: str = "Get information about the current user"
     
     def __init__(self):
         """Initialize the user info tool"""
         super().__init__()
-        self.user_context = {}  # Store user context information
+        # Note: user_context will be set via set_user_context method
     
     def set_user_context(self, context: Dict[str, Any]) -> None:
         """
@@ -124,7 +150,21 @@ class GetUserInfoTool(BaseTool):
         Args:
             context: Dictionary containing user information
         """
-        self.user_context = context or {}
+        # Store context in a way that doesn't conflict with Pydantic
+        object.__setattr__(self, 'user_context', context or {})
+    
+    def _run(self, query: str = "") -> str:
+        """
+        Get user information from context synchronously.
+        
+        Args:
+            query: Optional query string (not used for user info tool)
+            
+        Returns:
+            User information or error message
+        """
+        import asyncio
+        return asyncio.run(self._arun(query))
     
     async def _arun(self, query: str = "") -> str:
         """
@@ -137,19 +177,20 @@ class GetUserInfoTool(BaseTool):
             User information or error message
         """
         try:
-            if not self.user_context:
+            user_context = getattr(self, 'user_context', {})
+            if not user_context:
                 return "No user information available"
             
             # Extract user information
-            user_id = self.user_context.get("user_id", "Unknown")
-            conversation_id = self.user_context.get("conversation_id", "Unknown")
+            user_id = user_context.get("user_id", "Unknown")
+            conversation_id = user_context.get("conversation_id", "Unknown")
             
             # Build response
             response = f"User ID: {user_id}\n"
             response += f"Conversation ID: {conversation_id}\n"
             
             # Add any additional context information
-            for key, value in self.user_context.items():
+            for key, value in user_context.items():
                 if key not in ["user_id", "conversation_id"]:
                     response += f"{key}: {value}\n"
             
@@ -165,8 +206,8 @@ class CalculatorTool(BaseTool):
     Safely evaluates mathematical expressions with security limits.
     """
     
-    name = "calculator"
-    description = "Perform mathematical calculations"
+    name: str = "calculator"
+    description: str = "Perform mathematical calculations"
     
     def __init__(self):
         """Initialize the calculator tool with security limits"""
@@ -242,6 +283,19 @@ class CalculatorTool(BaseTool):
             
         except (ValueError, SyntaxError, ZeroDivisionError) as e:
             raise ValueError(f"Invalid expression: {str(e)}")
+    
+    def _run(self, expression: str) -> str:
+        """
+        Safely evaluate a mathematical expression synchronously.
+        
+        Args:
+            expression: The mathematical expression to evaluate
+            
+        Returns:
+            The calculation result or error message
+        """
+        import asyncio
+        return asyncio.run(self._arun(expression))
     
     async def _arun(self, expression: str) -> str:
         """

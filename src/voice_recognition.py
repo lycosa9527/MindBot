@@ -10,7 +10,7 @@ import os
 import tempfile
 import requests
 import base64
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 from src.config import (
     DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET
 )

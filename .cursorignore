@@ -1,9 +1,3 @@
-# MindBot .gitignore
-
-# Reference directories (for reference only, not part of main project)
-LangBot-master/
-AstrBot-master/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -34,19 +28,25 @@ ENV/
 env.bak/
 venv.bak/
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+
+# Logs
+*.log
+logs/
+mindbot.log
+test_connection.log
+
+# Environment variables
+# Note: .env files are explicitly allowed for development (not ignored by Cursor)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # OS
 .DS_Store
@@ -57,24 +57,19 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Logs
-*.log
-logs/
-mindbot.log
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
 # Temporary files
 *.tmp
 *.temp
-temp/
-tmp/
+*.bak
+*.backup
 
-# Docker
-.dockerignore
+# Test files
+test_*.py
+debug_*.py
+*_test.py
+
+# Documentation
+docs/_build/
 
 # Coverage reports
 htmlcov/
@@ -117,7 +112,4 @@ celerybeat.pid
 # mypy
 .mypy_cache/
 .dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
+dmypy.json 
