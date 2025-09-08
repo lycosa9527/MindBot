@@ -19,7 +19,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -47,29 +47,33 @@
             font-size: 1.1em;
         }
         
-        .status-grid {
+        .main-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
             margin-bottom: 30px;
         }
         
-        .status-card {
+        .status-section {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
         }
         
-        .status-card:hover {
-            transform: translateY(-5px);
+        .adapters-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
         
-        .status-card h3 {
+        .section-title {
             color: #2c3e50;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             font-size: 1.3em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
         }
         
         .status-indicator {
@@ -99,17 +103,17 @@
             background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 1em;
+            font-size: 0.9em;
             transition: all 0.3s ease;
-            margin: 5px;
+            margin: 2px;
         }
         
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
         }
         
         .btn:disabled {
@@ -126,7 +130,60 @@
             background: linear-gradient(45deg, #27ae60, #2ecc71);
         }
         
-        .test-section {
+        .btn-warning {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+        }
+        
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 0.8em;
+        }
+        
+        .adapter-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .adapter-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ecf0f1;
+        }
+        
+        .adapter-item.running {
+            border-left-color: #27ae60;
+        }
+        
+        .adapter-item.stopped {
+            border-left-color: #e74c3c;
+        }
+        
+        .adapter-info {
+            flex: 1;
+        }
+        
+        .adapter-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .adapter-type {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        .adapter-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .add-adapter-section {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             padding: 25px;
@@ -134,29 +191,35 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
         
-        .test-input {
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .form-group input, .form-group select {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: 2px solid #ecf0f1;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 1em;
-            margin: 10px 0;
             transition: border-color 0.3s ease;
         }
         
-        .test-input:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: #667eea;
         }
         
-        .response-box {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            min-height: 100px;
-            white-space: pre-wrap;
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
         
         .config-section {
@@ -186,12 +249,25 @@
         .config-value {
             color: #7f8c8d;
             font-family: monospace;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         .error-box {
             background: #f8d7da;
             border: 1px solid #f5c6cb;
             color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
             padding: 15px;
             border-radius: 8px;
             margin-top: 15px;
@@ -211,47 +287,175 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🤖 MindBot Dashboard</h1>
-            <p>Version {{ version }} ({{ build_date }}) - DingTalk Stream Bot Management</p>
+            <p>Version {{ version }} ({{ build_date }}) - Multi-Platform Bot Management</p>
         </div>
         
-        <div class="status-grid">
-            <div class="status-card">
-                <h3>Bot Status</h3>
+        <div class="main-grid">
+            <div class="status-section">
+                <h3 class="section-title">Bot Status</h3>
                 <p>
                     <span class="status-indicator" id="statusIndicator"></span>
                     <span id="statusText">Checking...</span>
                 </p>
                 <p id="uptime">Uptime: Not started</p>
                 <p id="messagesCount">Messages Processed: 0</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-success" id="startBtn" onclick="startBot()">Start Bot</button>
+                    <button class="btn btn-danger" id="stopBtn" onclick="stopBot()" disabled>Stop Bot</button>
+                    <button class="btn" onclick="refreshStatus()">Refresh</button>
+                </div>
             </div>
             
-            <div class="status-card">
-                <h3>Controls</h3>
-                <button class="btn btn-success" id="startBtn" onclick="startBot()">Start Bot</button>
-                <button class="btn btn-danger" id="stopBtn" onclick="stopBot()" disabled>Stop Bot</button>
-                <button class="btn" onclick="refreshStatus()">Refresh Status</button>
+            <div class="adapters-section">
+                <h3 class="section-title">Adapters</h3>
+                <div class="adapter-list" id="adapterList">
+                    <div class="loading"></div> Loading adapters...
+                </div>
+                <button class="btn" onclick="openAddAdapterModal()" style="margin-top: 15px;">Add Adapter</button>
             </div>
         </div>
         
-        <div class="test-section">
-            <h3>Test Message</h3>
-            <p>Send a test message to the bot to verify it's working correctly.</p>
-            <input type="text" class="test-input" id="testMessage" placeholder="Enter test message..." value="Hello, this is a test message">
-            <button class="btn" onclick="sendTestMessage()">Send Test Message</button>
-            <div class="response-box" id="testResponse">Response will appear here...</div>
+        <div class="add-adapter-section">
+            <h3 class="section-title">Quick Add Adapter</h3>
+            <form id="addAdapterForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="adapterId">Adapter ID:</label>
+                        <input type="text" id="adapterId" placeholder="e.g., dingtalk_main" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adapterType">Type:</label>
+                        <select id="adapterType" required>
+                            <option value="">Select Type</option>
+                            <option value="dingtalk">DingTalk</option>
+                            <option value="wecom">WeCom</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="dingtalkConfig" style="display: none;">
+                    <h4>DingTalk Configuration</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dtClientId">Client ID:</label>
+                            <input type="text" id="dtClientId" placeholder="DingTalk Client ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="dtClientSecret">Client Secret:</label>
+                            <input type="password" id="dtClientSecret" placeholder="DingTalk Client Secret">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="dtRobotCode">Robot Code:</label>
+                            <input type="text" id="dtRobotCode" placeholder="DingTalk Robot Code">
+                        </div>
+                        <div class="form-group">
+                            <label for="dtCardTemplateId">Card Template ID:</label>
+                            <input type="text" id="dtCardTemplateId" placeholder="Card Template ID">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="wecomConfig" style="display: none;">
+                    <h4>WeCom Configuration</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="wcCorpId">Corp ID:</label>
+                            <input type="text" id="wcCorpId" placeholder="WeCom Corp ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="wcCorpSecret">Corp Secret:</label>
+                            <input type="password" id="wcCorpSecret" placeholder="WeCom Corp Secret">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="wcAgentId">Agent ID:</label>
+                        <input type="text" id="wcAgentId" placeholder="WeCom Agent ID">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-success">Add Adapter</button>
+            </form>
         </div>
         
         <div class="config-section">
-            <h3>Configuration</h3>
+            <h3 class="section-title">Configuration</h3>
+            <div style="margin-bottom: 15px;">
+                <button class="btn" onclick="editDifyConfig()">Edit Dify API Key</button>
+                <button class="btn" onclick="refreshConfig()">Refresh Config</button>
+            </div>
             <div id="configContent">
                 <div class="loading"></div> Loading configuration...
             </div>
+        </div>
+        
+        <div class="config-section">
+            <h3 class="section-title">Logs</h3>
+            <div style="margin-bottom: 15px;">
+                <button class="btn" onclick="loadLogs()">Refresh Logs</button>
+                <button class="btn" onclick="clearLogs()">Clear Logs</button>
+                <select id="logLines" onchange="loadLogs()">
+                    <option value="50">Last 50 lines</option>
+                    <option value="100" selected>Last 100 lines</option>
+                    <option value="200">Last 200 lines</option>
+                    <option value="500">Last 500 lines</option>
+                </select>
+            </div>
+            <div id="logsContent" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 15px; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 0.9em;">
+                <div class="loading"></div> Loading logs...
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Adapter Modal -->
+    <div id="addAdapterModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddAdapterModal()">&times;</span>
+            <h2>Add New Adapter</h2>
+            <form id="modalAddAdapterForm">
+                <!-- Same form content as above -->
+            </form>
         </div>
     </div>
     
@@ -261,9 +465,21 @@
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             refreshStatus();
+            loadAdapters();
             loadConfig();
-            statusInterval = setInterval(refreshStatus, 5000); // Refresh every 5 seconds
+            loadLogs();
+            statusInterval = setInterval(refreshStatus, 5000);
+            
+            // Setup form handlers
+            document.getElementById('adapterType').addEventListener('change', toggleConfigSections);
+            document.getElementById('addAdapterForm').addEventListener('submit', addAdapter);
         });
+        
+        function toggleConfigSections() {
+            const type = document.getElementById('adapterType').value;
+            document.getElementById('dingtalkConfig').style.display = type === 'dingtalk' ? 'block' : 'none';
+            document.getElementById('wecomConfig').style.display = type === 'wecom' ? 'block' : 'none';
+        }
         
         async function refreshStatus() {
             try {
@@ -283,20 +499,12 @@
             const startBtn = document.getElementById('startBtn');
             const stopBtn = document.getElementById('stopBtn');
             
-            if (status.running) {
+            if (status.is_running) {
                 indicator.className = 'status-indicator status-running';
                 statusText.textContent = 'Running';
                 startBtn.disabled = true;
                 stopBtn.disabled = false;
-                
-                if (status.start_time) {
-                    const startTime = new Date(status.start_time);
-                    const now = new Date();
-                    const diff = now - startTime;
-                    const minutes = Math.floor(diff / 60000);
-                    const seconds = Math.floor((diff % 60000) / 1000);
-                    uptime.textContent = `Uptime: ${minutes}m ${seconds}s`;
-                }
+                uptime.textContent = `Uptime: ${status.uptime || 'Unknown'}`;
             } else {
                 indicator.className = 'status-indicator status-stopped';
                 statusText.textContent = 'Stopped';
@@ -310,65 +518,191 @@
         
         async function startBot() {
             try {
-                const response = await fetch('/api/start', { method: 'POST' });
+                const response = await fetch('/api/bot/start', { method: 'POST' });
                 const data = await response.json();
                 
-                if (data.success) {
-                    alert('Bot started successfully!');
+                if (data.message) {
+                    showMessage(data.message, 'success');
                     refreshStatus();
                 } else {
-                    alert('Failed to start bot: ' + data.message);
+                    showMessage('Failed to start bot: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                alert('Error starting bot: ' + error.message);
+                showMessage('Error starting bot: ' + error.message, 'error');
             }
         }
         
         async function stopBot() {
             try {
-                const response = await fetch('/api/stop', { method: 'POST' });
+                const response = await fetch('/api/bot/stop', { method: 'POST' });
                 const data = await response.json();
                 
-                if (data.success) {
-                    alert('Bot stopped successfully!');
+                if (data.message) {
+                    showMessage(data.message, 'success');
                     refreshStatus();
                 } else {
-                    alert('Failed to stop bot: ' + data.message);
+                    showMessage('Failed to stop bot: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                alert('Error stopping bot: ' + error.message);
+                showMessage('Error stopping bot: ' + error.message, 'error');
             }
         }
         
-        async function sendTestMessage() {
-            const message = document.getElementById('testMessage').value;
-            const responseBox = document.getElementById('testResponse');
+        async function loadAdapters() {
+            try {
+                const response = await fetch('/api/adapters');
+                const data = await response.json();
+                updateAdapterList(data.adapters || []);
+            } catch (error) {
+                console.error('Failed to load adapters:', error);
+                document.getElementById('adapterList').innerHTML = 
+                    '<div class="error-box">Failed to load adapters: ' + error.message + '</div>';
+            }
+        }
+        
+        function updateAdapterList(adapters) {
+            const adapterList = document.getElementById('adapterList');
             
-            if (!message.trim()) {
-                alert('Please enter a test message');
+            if (adapters.length === 0) {
+                adapterList.innerHTML = '<p>No adapters configured</p>';
                 return;
             }
             
-            responseBox.textContent = 'Sending test message...';
+            adapterList.innerHTML = adapters.map(adapter => `
+                <div class="adapter-item ${adapter.is_running ? 'running' : 'stopped'}">
+                    <div class="adapter-info">
+                        <div class="adapter-name">${adapter.id}</div>
+                        <div class="adapter-type">${adapter.type} - ${adapter.status}</div>
+                    </div>
+                    <div class="adapter-actions">
+                        <button class="btn btn-small ${adapter.is_running ? 'btn-warning' : 'btn-success'}" 
+                                onclick="${adapter.is_running ? 'stopAdapter' : 'startAdapter'}('${adapter.id}')">
+                            ${adapter.is_running ? 'Stop' : 'Start'}
+                        </button>
+                        <button class="btn btn-small btn-warning" onclick="restartAdapter('${adapter.id}')">Restart</button>
+                        <button class="btn btn-small btn-danger" onclick="removeAdapter('${adapter.id}')">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function startAdapter(adapterId) {
+            try {
+                const response = await fetch(`/api/adapters/${adapterId}/start`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.message) {
+                    showMessage(data.message, 'success');
+                    loadAdapters();
+                } else {
+                    showMessage('Failed to start adapter: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showMessage('Error starting adapter: ' + error.message, 'error');
+            }
+        }
+        
+        async function stopAdapter(adapterId) {
+            try {
+                const response = await fetch(`/api/adapters/${adapterId}/stop`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.message) {
+                    showMessage(data.message, 'success');
+                    loadAdapters();
+                } else {
+                    showMessage('Failed to stop adapter: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showMessage('Error stopping adapter: ' + error.message, 'error');
+            }
+        }
+        
+        async function restartAdapter(adapterId) {
+            try {
+                const response = await fetch(`/api/adapters/${adapterId}/restart`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.message) {
+                    showMessage(data.message, 'success');
+                    loadAdapters();
+                } else {
+                    showMessage('Failed to restart adapter: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showMessage('Error restarting adapter: ' + error.message, 'error');
+            }
+        }
+        
+        async function removeAdapter(adapterId) {
+            if (!confirm(`Are you sure you want to remove adapter "${adapterId}"?`)) {
+                return;
+            }
             
             try {
-                const response = await fetch('/api/test-message', {
+                const response = await fetch(`/api/adapters/${adapterId}`, { method: 'DELETE' });
+                const data = await response.json();
+                
+                if (data.message) {
+                    showMessage(data.message, 'success');
+                    loadAdapters();
+                } else {
+                    showMessage('Failed to remove adapter: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showMessage('Error removing adapter: ' + error.message, 'error');
+            }
+        }
+        
+        async function addAdapter(event) {
+            event.preventDefault();
+            
+            const adapterId = document.getElementById('adapterId').value;
+            const adapterType = document.getElementById('adapterType').value;
+            
+            if (!adapterId || !adapterType) {
+                showMessage('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            const config = {};
+            
+            if (adapterType === 'dingtalk') {
+                config.client_id = document.getElementById('dtClientId').value;
+                config.client_secret = document.getElementById('dtClientSecret').value;
+                config.robot_code = document.getElementById('dtRobotCode').value;
+                config.card_template_id = document.getElementById('dtCardTemplateId').value;
+            } else if (adapterType === 'wecom') {
+                config.corp_id = document.getElementById('wcCorpId').value;
+                config.corp_secret = document.getElementById('wcCorpSecret').value;
+                config.agent_id = document.getElementById('wcAgentId').value;
+            }
+            
+            try {
+                const response = await fetch('/api/adapters', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ message: message })
+                    body: JSON.stringify({
+                        adapter_id: adapterId,
+                        type: adapterType,
+                        config: config
+                    })
                 });
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    responseBox.textContent = data.response || 'No response received';
+                if (data.message) {
+                    showMessage(data.message, 'success');
+                    loadAdapters();
+                    document.getElementById('addAdapterForm').reset();
+                    toggleConfigSections();
                 } else {
-                    responseBox.textContent = 'Error: ' + data.message;
+                    showMessage('Failed to add adapter: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                responseBox.textContent = 'Error: ' + error.message;
+                showMessage('Error adding adapter: ' + error.message, 'error');
             }
         }
         
@@ -377,36 +711,225 @@
                 const response = await fetch('/api/config');
                 const data = await response.json();
                 
-                if (data.success) {
-                    const config = data.config;
-                    const configContent = document.getElementById('configContent');
+                const configContent = document.getElementById('configContent');
+                
+                if (data) {
+                    const dingtalkAdapters = data.adapters?.dingtalk || [];
+                    const wecomAdapters = data.adapters?.wecom || [];
+                    const agent = data.agent || {};
+                    const routing = data.routing || {};
+                    const monitoring = data.monitoring || {};
+                    
+                    // Count enabled adapters
+                    const enabledDingtalk = dingtalkAdapters.filter(a => a.enabled).length;
+                    const enabledWecom = wecomAdapters.filter(a => a.enabled).length;
                     
                     configContent.innerHTML = `
-                        <div class="config-item">
-                            <span class="config-label">DingTalk Robot Code:</span>
-                            <span class="config-value">${config.dingtalk.robot_code || 'Not set'}</span>
+                        <div class="config-section">
+                            <h4 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px;">🤖 AI Configuration</h4>
+                            <div class="config-item">
+                                <span class="config-label">AI Provider:</span>
+                                <span class="config-value">${agent.ai_provider || 'Not set'}</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Dify API Key:</span>
+                                <span class="config-value">${agent.dify_api_key ? '***' + agent.dify_api_key.slice(-4) : '⚠️ Not set - Click Edit Dify API Key to configure'}</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Dify Base URL:</span>
+                                <span class="config-value">${agent.dify_base_url || 'Not set'}</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Max Concurrent Messages:</span>
+                                <span class="config-value">${agent.max_concurrent_messages || 'Not set'}</span>
+                            </div>
                         </div>
-                        <div class="config-item">
-                            <span class="config-label">DingTalk Robot Name:</span>
-                            <span class="config-value">${config.dingtalk.robot_name || 'Not set'}</span>
+                        
+                        <div class="config-section" style="margin-top: 20px;">
+                            <h4 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px;">📱 Platform Adapters</h4>
+                            <div class="config-item">
+                                <span class="config-label">DingTalk Adapters:</span>
+                                <span class="config-value">${enabledDingtalk}/${dingtalkAdapters.length} enabled</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">WeCom Adapters:</span>
+                                <span class="config-value">${enabledWecom}/${wecomAdapters.length} enabled</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Total Adapters:</span>
+                                <span class="config-value">${enabledDingtalk + enabledWecom}/${dingtalkAdapters.length + wecomAdapters.length} enabled</span>
+                            </div>
                         </div>
-                        <div class="config-item">
-                            <span class="config-label">Dify Base URL:</span>
-                            <span class="config-value">${config.dify.base_url || 'Not set'}</span>
+                        
+                        <div class="config-section" style="margin-top: 20px;">
+                            <h4 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px;">🔧 System Settings</h4>
+                            <div class="config-item">
+                                <span class="config-label">Cross-Platform Enabled:</span>
+                                <span class="config-value">${routing.cross_platform_enabled ? 'Yes' : 'No'}</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Message Broadcast:</span>
+                                <span class="config-value">${routing.message_broadcast ? 'Yes' : 'No'}</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Health Check Interval:</span>
+                                <span class="config-value">${monitoring.health_check_interval || 'Not set'}s</span>
+                            </div>
+                            <div class="config-item">
+                                <span class="config-label">Log Level:</span>
+                                <span class="config-value">${monitoring.log_level || 'Not set'}</span>
+                            </div>
                         </div>
-                        <div class="config-item">
-                            <span class="config-label">Qwen Base URL:</span>
-                            <span class="config-value">${config.qwen.base_url || 'Not set'}</span>
+                        
+                        <div class="config-section" style="margin-top: 20px;">
+                            <h4 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 1px solid #ecf0f1; padding-bottom: 5px;">📊 Adapter Details</h4>
+                            ${generateAdapterDetails(dingtalkAdapters, 'DingTalk')}
+                            ${generateAdapterDetails(wecomAdapters, 'WeCom')}
                         </div>
                     `;
                 } else {
-                    document.getElementById('configContent').innerHTML = 
-                        '<div class="error-box">Failed to load configuration: ' + data.message + '</div>';
+                    configContent.innerHTML = '<div class="error-box">Failed to load configuration</div>';
                 }
             } catch (error) {
                 document.getElementById('configContent').innerHTML = 
                     '<div class="error-box">Error loading configuration: ' + error.message + '</div>';
             }
+        }
+        
+        function generateAdapterDetails(adapters, platformName) {
+            if (adapters.length === 0) {
+                return `<div class="config-item"><span class="config-label">${platformName}:</span><span class="config-value">No adapters configured</span></div>`;
+            }
+            
+            return adapters.map(adapter => `
+                <div class="config-item">
+                    <span class="config-label">${platformName} - ${adapter.adapter_id}:</span>
+                    <span class="config-value">${adapter.enabled ? '✅ Enabled' : '❌ Disabled'}</span>
+                </div>
+                <div class="config-item" style="margin-left: 20px; font-size: 0.9em;">
+                    <span class="config-label">Description:</span>
+                    <span class="config-value">${adapter.description || 'No description'}</span>
+                </div>
+                <div class="config-item" style="margin-left: 20px; font-size: 0.9em;">
+                    <span class="config-label">Credentials:</span>
+                    <span class="config-value">${getCredentialsStatus(adapter.config)}</span>
+                </div>
+            `).join('');
+        }
+        
+        function getCredentialsStatus(config) {
+            if (!config) return 'Not configured';
+            
+            const requiredFields = Object.keys(config).filter(key => 
+                key !== 'enable_streaming' && key !== 'connection_type'
+            );
+            const filledFields = requiredFields.filter(key => 
+                config[key] && config[key].trim() !== ''
+            );
+            
+            if (filledFields.length === 0) return '❌ No credentials set';
+            if (filledFields.length === requiredFields.length) return '✅ All credentials set';
+            return `⚠️ ${filledFields.length}/${requiredFields.length} credentials set`;
+        }
+        
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'success' ? 'success-box' : 'error-box';
+            messageDiv.textContent = message;
+            
+            // Insert at the top of the container
+            const container = document.querySelector('.container');
+            container.insertBefore(messageDiv, container.firstChild);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.parentNode.removeChild(messageDiv);
+                }
+            }, 5000);
+        }
+        
+        function openAddAdapterModal() {
+            document.getElementById('addAdapterModal').style.display = 'block';
+        }
+        
+        function closeAddAdapterModal() {
+            document.getElementById('addAdapterModal').style.display = 'none';
+        }
+        
+        function editDifyConfig() {
+            const newApiKey = prompt('Enter new Dify API Key:', '');
+            if (newApiKey !== null && newApiKey.trim() !== '') {
+                updateDifyApiKey(newApiKey.trim());
+            }
+        }
+        
+        async function updateDifyApiKey(apiKey) {
+            try {
+                const response = await fetch('/api/config/dify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        dify_api_key: apiKey
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.message) {
+                    showMessage(data.message, 'success');
+                    loadConfig();
+                } else {
+                    showMessage('Failed to update Dify API key: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showMessage('Error updating Dify API key: ' + error.message, 'error');
+            }
+        }
+        
+        function refreshConfig() {
+            loadConfig();
+            showMessage('Configuration refreshed', 'success');
+        }
+        
+        async function loadLogs() {
+            try {
+                const lines = document.getElementById('logLines').value;
+                const response = await fetch(`/api/logs?lines=${lines}`);
+                const data = await response.json();
+                
+                const logsContent = document.getElementById('logsContent');
+                
+                if (data.logs && data.logs.length > 0) {
+                    logsContent.innerHTML = data.logs.map(log => 
+                        `<div style="margin-bottom: 2px; word-wrap: break-word;">${escapeHtml(log)}</div>`
+                    ).join('');
+                    
+                    // Auto-scroll to bottom
+                    logsContent.scrollTop = logsContent.scrollHeight;
+                } else {
+                    logsContent.innerHTML = '<div style="color: #6c757d;">No logs available</div>';
+                }
+            } catch (error) {
+                document.getElementById('logsContent').innerHTML = 
+                    '<div style="color: #dc3545;">Error loading logs: ' + error.message + '</div>';
+            }
+        }
+        
+        function clearLogs() {
+            if (confirm('Are you sure you want to clear the logs? This action cannot be undone.')) {
+                document.getElementById('logsContent').innerHTML = 
+                    '<div style="color: #6c757d;">Logs cleared</div>';
+                showMessage('Logs cleared from display', 'success');
+            }
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
     </script>
 </body>

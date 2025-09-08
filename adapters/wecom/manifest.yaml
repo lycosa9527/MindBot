@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: MessagePlatformAdapter
+metadata:
+  name: wecom
+  label:
+    en_US: WeCom
+    zh_Hans: 企业微信
+  description:
+    en_US: WeCom Adapter for enterprise messaging
+    zh_Hans: 企业微信消息适配器
+  version: "1.0.0"
+  author: "MindBot Team"
+  icon: wecom.svg
+spec:
+  config:
+    - name: corp_id
+      label:
+        en_US: Corp ID
+        zh_Hans: 企业ID
+      type: string
+      required: true
+      default: ""
+      description: "WeCom corporation ID"
+    - name: corp_secret
+      label:
+        en_US: Corp Secret
+        zh_Hans: 企业密钥
+      type: string
+      required: true
+      default: ""
+      description: "WeCom corporation secret"
+    - name: agent_id
+      label:
+        en_US: Agent ID
+        zh_Hans: 应用ID
+      type: string
+      required: true
+      default: ""
+      description: "WeCom agent ID"
+    - name: connection_type
+      label:
+        en_US: Connection Type
+        zh_Hans: 连接类型
+      type: string
+      required: false
+      default: "direct_api"
+      description: "Connection type for WeCom integration"
+  capabilities:
+    - "text_messages"
+    - "image_messages"
+    - "file_messages"
+    - "markdown_messages"
+    - "direct_api_connection"
+  platform_type: "wecom"
+execution:
+  python_path: "src.adapters.wecom_adapter"
+  class_name: "WeComAdapter"

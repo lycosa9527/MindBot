@@ -175,7 +175,7 @@ mindbot_poc/
 │       └── base.py             # PlatformAdapter base class
 ├── src/                        # Existing DingTalk bot code
 ├── templates/                  # Web dashboard templates
-├── start_mindbot.py           # Unified startup script
+├── run.py                     # Unified startup script
 └── example_usage.py           # Framework usage example
 ```
 

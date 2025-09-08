@@ -6,32 +6,33 @@ Handles real-time message reception and sending via DingTalk Stream Mode
 
 import asyncio
 import json
-import logging
+from .logging_config import get_logger
 import threading
 import hashlib
 import time
 import uuid
-import aiohttp
+import requests
 from typing import Callable, Optional, Dict, Any
 from dingtalk_stream import DingTalkStreamClient, Credential, ChatbotHandler, ChatbotMessage, AckMessage, AICardReplier
 from dingtalk_stream.frames import CallbackMessage as CallbackFrame
 
-# Import official Alibaba Cloud DingTalk SDK
-from alibabacloud_dingtalk.card_1_0 import client as card_client, models as card_models
-from alibabacloud_tea_openapi import models as openapi_models
-from alibabacloud_tea_util import models as util_models
+# Note: AI Card functionality is handled by dingtalk-stream.AICardReplier
 
-from src.config import (
-    DINGTALK_CLIENT_ID, DINGTALK_CLIENT_SECRET, DINGTALK_ROBOT_CODE,
-    DINGTALK_ROBOT_NAME, DEBUG_MODE, LOG_LEVEL, ENABLE_STREAMING, DINGTALK_CARD_TEMPLATE_ID,
-    STREAMING_MIN_CHUNK_SIZE, STREAMING_UPDATE_DELAY, STREAMING_MAX_RETRIES, STREAMING_RETRY_DELAY,
-    ENABLE_FLUID_STREAMING, FLUID_STREAMING_MIN_CHUNK, FLUID_STREAMING_DELAY
-)
+# Note: DingTalk credentials are now passed via constructor parameters
+# Streaming configuration constants (can be moved to config later)
+ENABLE_STREAMING = True
+STREAMING_MIN_CHUNK_SIZE = 20
+STREAMING_UPDATE_DELAY = 0.05
+STREAMING_MAX_RETRIES = 3
+STREAMING_RETRY_DELAY = 1.0
+ENABLE_FLUID_STREAMING = True
+FLUID_STREAMING_MIN_CHUNK = 10
+FLUID_STREAMING_DELAY = 0.02
 from src.debug import DebugLogger
 from src.voice_recognition import VoiceRecognitionService
 from src.agent import MindBotAgent
 
-logger = logging.getLogger(__name__)
+logger = get_logger("DingTalk")
 
 class MindBotChatbotHandler(ChatbotHandler):
     """
@@ -81,332 +82,33 @@ class MindBotChatbotHandler(ChatbotHandler):
             
             url = "https://oapi.dingtalk.com/gettoken"
             params = {
-                "appkey": DINGTALK_CLIENT_ID,
-                "appsecret": DINGTALK_CLIENT_SECRET
+                "appkey": self.client_id,
+                "appsecret": self.client_secret
             }
             
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params) as response:
-                    if response.status != 200:
-                        logger.error(f"Failed to get access token: {response.status}")
-                        return None
+            response = requests.get(url, params=params)
+            if response.status_code != 200:
+                logger.error(f"Failed to get access token: {response.status_code}")
+                return None
                     
-                    data = await response.json()
-                    if data.get("errcode") == 0:
-                        self.access_token = data.get("access_token")
-                        # Token expires in 2 hours, refresh 10 minutes early
-                        self.token_expires_at = asyncio.get_event_loop().time() + (7200 - 600)
-                        logger.debug("DingTalk access token obtained successfully")
-                        return self.access_token
-                    else:
-                        logger.error(f"Failed to get access token: {data}")
-                        return None
+            data = response.json()
+            if data.get("errcode") == 0:
+                self.access_token = data.get("access_token")
+                # Token expires in 2 hours, refresh 10 minutes early
+                self.token_expires_at = asyncio.get_event_loop().time() + (7200 - 600)
+                logger.debug("DingTalk access token obtained successfully")
+                return self.access_token
+            else:
+                logger.error(f"Failed to get access token: {data}")
+                return None
                         
         except Exception as e:
             logger.error(f"Error getting access token: {str(e)}")
             return None
     
-    async def send_streaming_update(self, card_instance_id: str, content: str, 
-                                  is_full: bool = False, is_finalize: bool = False, 
-                                  is_error: bool = False, incoming_message=None, out_track_id: str = None) -> bool:
-        """
-        Send streaming update using DingTalk's official Alibaba Cloud SDK.
-        
-        Args:
-            card_instance_id: ID of the card to update
-            content: Text content to send
-            is_full: Whether this is a full message
-            is_finalize: Whether this is the final update
-            is_error: Whether this is an error message
-            incoming_message: Original DingTalk message (not used in official SDK)
-            out_track_id: The outTrackId used in card creation (should be the same)
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        try:
-            # Get access token
-            token = await self.get_access_token()
-            if not token:
-                logger.error("Failed to get access token for streaming API")
-                return False
-            
-            # Try official Alibaba Cloud SDK first (matching official example)
-            try:
-                logger.debug("Attempting streaming update using official Alibaba Cloud SDK...")
-                
-                # Create client using official example pattern
-                config = openapi_models.Config()
-                config.protocol = 'https'
-                config.region_id = 'central'
-                client = card_client.Client(config)
-                
-                # Create headers using official example pattern
-                streaming_update_headers = card_models.StreamingUpdateHeaders()
-                streaming_update_headers.x_acs_dingtalk_access_token = token
-                
-                # Use the same outTrackId from card creation, or generate a new one if not provided
-                if not out_track_id:
-                    out_track_id = str(uuid.uuid4())
-                
-                # Generate GUID in the format shown in official documentation: 0F714542-0AFC-2B0E-CF14-E2D39F5BFFE8
-                guid = str(uuid.uuid4()).upper()
-                
-                # Create request using official example pattern
-                streaming_update_request = card_models.StreamingUpdateRequest(
-                    out_track_id=out_track_id,
-                    guid=guid,
-                    key='your-ai-param',  # Use the key from official example
-                    content=content,
-                    is_full=is_full,
-                    is_finalize=is_finalize,
-                    is_error=is_error
-                )
-                
-                # Send streaming update using official SDK (matching official example)
-                try:
-                    await client.streaming_update_with_options_async(streaming_update_request, streaming_update_headers, util_models.RuntimeOptions())
-                    logger.debug(f"Streaming update sent successfully using official SDK: {len(content)} characters")
-                    return True
-                except Exception as err:
-                    # Error handling matching official example
-                    if hasattr(err, 'code') and hasattr(err, 'message'):
-                        logger.error(f"Service error - code: {err.code}, message: {err.message}")
-                    else:
-                        logger.error(f"Streaming update failed: {str(err)}")
-                    return False
-                    
-            except Exception as e:
-                logger.warning(f"Official SDK streaming update failed: {str(e)}, trying direct API...")
-            
-            # Fallback to direct HTTP API approach
-            logger.debug("Attempting streaming update using direct HTTP API...")
-            
-            # Use the same outTrackId from card creation, or generate a new one if not provided
-            if not out_track_id:
-                out_track_id = str(uuid.uuid4())
-            
-            # Generate GUID in the format shown in official documentation: 0F714542-0AFC-2B0E-CF14-E2D39F5BFFE8
-            guid = str(uuid.uuid4()).upper()
-            
-            # Prepare request headers
-            headers = {
-                "x-acs-dingtalk-access-token": token,
-                "Content-Type": "application/json"
-            }
-            
-            # Prepare request payload according to official API format
-            payload = {
-                "outTrackId": out_track_id,
-                "guid": guid,
-                "key": "your-ai-param",  # Use the key from official example
-                "content": content,
-                "isFull": is_full,
-                "isFinalize": is_finalize,
-                "isError": is_error
-            }
-            
-            # Send streaming update using PUT /v1.0/card/streaming
-            streaming_url = "https://api.dingtalk.com/v1.0/card/streaming"
-            async with aiohttp.ClientSession() as session:
-                async with session.put(streaming_url, headers=headers, json=payload) as response:
-                    if response.status == 200:
-                        logger.debug(f"Streaming update sent successfully using direct API: {len(content)} characters")
-                        return True
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Streaming API error {response.status}: {error_text}")
-                        return False
-                        
-        except Exception as e:
-            logger.error(f"Error sending streaming update: {str(e)}")
-            return False
+    # Note: Streaming updates are handled by dingtalk-stream.AICardReplier
     
-    async def create_card(self, user_id: str, out_track_id: str, initial_content: str = "", incoming_message=None) -> Optional[str]:
-        """
-        Create a card using DingTalk's official Alibaba Cloud SDK.
-        
-        Args:
-            user_id: User ID to send the card to
-            out_track_id: Unique identifier for the card
-            initial_content: Initial content to display in the card
-            incoming_message: Original DingTalk message (not used in official SDK)
-            
-        Returns:
-            Card instance ID if successful, None otherwise
-        """
-        try:
-            # Get access token
-            token = await self.get_access_token()
-            if not token:
-                logger.error("Failed to get access token for card creation")
-                return None
-            
-            # Try official Alibaba Cloud SDK first (matching official example)
-            try:
-                logger.debug("Attempting card creation using official Alibaba Cloud SDK...")
-                
-                # Create client using official example pattern
-                config = openapi_models.Config()
-                config.protocol = 'https'
-                config.region_id = 'central'
-                client = card_client.Client(config)
-                
-                # Create headers using official example pattern
-                create_card_headers = card_models.CreateCardHeaders()
-                create_card_headers.x_acs_dingtalk_access_token = token
-                
-                # Create card data
-                card_data = card_models.CreateCardRequestCardData(
-                    card_param_map={
-                        "content": initial_content,
-                        "title": "AI Assistant",
-                        "StringValue": initial_content,
-                        "robotCode": DINGTALK_ROBOT_CODE  # Add robot code binding
-                    }
-                )
-                
-                # Create IM single open space model
-                im_single_open_space_model = card_models.CreateCardRequestImSingleOpenSpaceModel(
-                    support_forward=True,
-                    last_message_i18n={
-                        "key": "AI Assistant"
-                    },
-                    search_support=card_models.CreateCardRequestImSingleOpenSpaceModelSearchSupport(
-                        search_icon="🤖",
-                        search_type_name="AI Assistant",
-                        search_desc="AI-powered responses"
-                    ),
-                    notification=card_models.CreateCardRequestImSingleOpenSpaceModelNotification(
-                        alert_content="AI Assistant replied",
-                        notification_off=False
-                    )
-                )
-                
-                # Create request using official example pattern
-                create_card_request = card_models.CreateCardRequest(
-                    user_id=user_id,
-                    card_template_id=DINGTALK_CARD_TEMPLATE_ID,  # Use AI card type instead of StandardCard
-                    out_track_id=out_track_id,
-                    callback_type="STREAM",  # Explicitly declare STREAM callback type
-                    callback_route_key="ai-streaming",
-                    card_data=card_data,
-                    im_single_open_space_model=im_single_open_space_model,
-                    user_id_type=1
-                )
-                
-                # Create card using official SDK (matching official example)
-                try:
-                    response = await client.create_card_with_options_async(create_card_request, create_card_headers, util_models.RuntimeOptions())
-                    if response and response.body and response.body.card_instance_id:
-                        card_instance_id = response.body.card_instance_id
-                        logger.debug(f"Card created successfully using official SDK: {card_instance_id}")
-                        return card_instance_id
-                    else:
-                        logger.warning("Official SDK card creation returned no card_instance_id, trying direct API...")
-                except Exception as err:
-                    # Error handling matching official example
-                    if hasattr(err, 'code') and hasattr(err, 'message'):
-                        logger.error(f"Service error - code: {err.code}, message: {err.message}")
-                    else:
-                        logger.error(f"Card creation failed: {str(err)}")
-                    
-            except Exception as e:
-                logger.warning(f"Official SDK card creation failed: {str(e)}, trying direct API...")
-            
-            # Fallback to direct HTTP API approach
-            logger.debug("Attempting card creation using direct HTTP API...")
-            
-            # Prepare request headers
-            headers = {
-                "x-acs-dingtalk-access-token": token,
-                "Content-Type": "application/json"
-            }
-            
-            # Prepare request payload according to official DingTalk documentation
-            payload = {
-                "userId": user_id,
-                "cardTemplateId": DINGTALK_CARD_TEMPLATE_ID,  # Use AI card type instead of StandardCard
-                "outTrackId": out_track_id,
-                "callbackType": "STREAM",  # Explicitly declare STREAM callback type
-                "callbackRouteKey": "ai-streaming",
-                "cardData": {
-                    "cardParamMap": {
-                        "content": initial_content,
-                        "title": "AI Assistant",
-                        "StringValue": initial_content,
-                        "robotCode": DINGTALK_ROBOT_CODE  # Add robot code binding
-                    }
-                },
-                "imSingleOpenSpaceModel": {
-                    "supportForward": True,
-                    "lastMessageI18n": {
-                        "key": "AI Assistant"
-                    },
-                    "searchSupport": {
-                        "searchIcon": "🤖",
-                        "searchTypeName": "AI Assistant",
-                        "searchDesc": "AI-powered responses"
-                    },
-                    "notification": {
-                        "alertContent": "AI Assistant replied",
-                        "notificationOff": False
-                    }
-                },
-                "imRobotOpenSpaceModel": {
-                    "supportForward": True,
-                    "lastMessageI18n": {
-                        "key": "AI Assistant"
-                    },
-                    "searchSupport": {
-                        "searchIcon": "🤖",
-                        "searchTypeName": "AI Assistant",
-                        "searchDesc": "AI-powered responses"
-                    },
-                    "notification": {
-                        "alertContent": "AI Assistant replied",
-                        "notificationOff": False
-                    }
-                },
-                "userIdType": 1
-            }
-            
-            # Create card using official API
-            card_api_url = "https://api.dingtalk.com/v1.0/card/instances"
-            async with aiohttp.ClientSession() as session:
-                async with session.post(card_api_url, headers=headers, json=payload) as response:
-                    if response.status == 200:
-                        response_data = await response.json()
-                        card_instance_id = response_data.get("cardInstanceId")
-                        if card_instance_id:
-                            logger.debug(f"Card created successfully using direct API: {card_instance_id}")
-                            return card_instance_id
-                        else:
-                            logger.error(f"Card creation response missing cardInstanceId: {response_data}")
-                            return None
-                    elif response.status == 400:
-                        error_text = await response.text()
-                        logger.error(f"Card creation bad request: {error_text}")
-                        logger.warning("Check if all required fields are provided correctly.")
-                        return None
-                    elif response.status == 403:
-                        error_text = await response.text()
-                        logger.error(f"Card creation permission denied: {error_text}")
-                        logger.warning("DingTalk app lacks Card.Instance.Write permission. Please add this permission in DingTalk Open Platform.")
-                        return None
-                    elif response.status == 503:
-                        error_text = await response.text()
-                        logger.error(f"Card creation service unavailable: {error_text}")
-                        logger.warning("DingTalk card service is temporarily unavailable. Using fallback mode.")
-                        return None
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Card creation API error {response.status}: {error_text}")
-                        return None
-                        
-        except Exception as e:
-            logger.error(f"Error creating card: {str(e)}")
-            return None
+    # Note: Card creation is handled by dingtalk-stream.AICardReplier
         
     async def create_card_with_dingtalk_stream(self, user_id: str, out_track_id: str, initial_content: str = "", incoming_message=None) -> Optional[str]:
         """
@@ -430,7 +132,7 @@ class MindBotChatbotHandler(ChatbotHandler):
             )
             
             # Use the configured card template ID
-            card_template_id = DINGTALK_CARD_TEMPLATE_ID
+            card_template_id = self.card_template_id
             
             # Create card data (matching example code pattern)
             content_key = "content"
@@ -535,15 +237,18 @@ class MindBotChatbotHandler(ChatbotHandler):
                 "session_webhook": incoming_message.session_webhook
             }
             
-            # Use streaming response for all messages (if enabled)
+            # Use smart message routing based on Dify response type
             if ENABLE_STREAMING:
+                # For streaming mode, always use AI Cards for real-time experience
                 full_response = await self._process_streaming_response(text_content, context, incoming_message)
             else:
-                # Fallback to blocking response
+                # For blocking mode, use smart routing for static responses
                 logger.debug(f"Sending to Dify (blocking): {text_content}")
                 response = await self.agent_handler(text_content, context)
                 logger.debug(f"Dify response: {response}")
-                self.reply_text(response, incoming_message)
+                
+                # Smart routing based on response content (static responses only)
+                await self._smart_reply_static(response, incoming_message)
                 full_response = response
             
             # Log workflow completion
@@ -652,8 +357,8 @@ class MindBotChatbotHandler(ChatbotHandler):
                     response = await self.agent_handler(text_content, context)
                     full_response = response if response and not response.startswith("Error:") else "I'm sorry, I encountered an error processing your message."
                 
-                # Send the complete response
-                self.reply_text(full_response, incoming_message)
+                # Use smart routing for the complete response
+                await self._smart_reply_static(full_response, incoming_message)
                 return full_response
             
             # Step 2: Create AICardReplier instance for streaming updates (matching example code)
@@ -807,18 +512,22 @@ class MindBotChatbotHandler(ChatbotHandler):
     
     async def _extract_message_content(self, incoming_message: ChatbotMessage) -> Optional[str]:
         """
-        Extract content from message, handling both text and voice messages.
+        Extract content from message, handling all supported message types.
         
         Supported message types:
         - Text messages: Direct text content
         - Voice messages: Audio that gets transcribed to text
-        - Other types (images, files, cards, etc.): Ignored (normal)
+        - Image messages: Processed and sent to Dify for analysis
+        - Video messages: Processed and sent to Dify for analysis
+        - File messages: Processed and sent to Dify for analysis
+        - Rich text messages: Processed and sent to Dify for analysis
+        - Card messages: Processed and sent to Dify for analysis
         
         Args:
             incoming_message: ChatbotMessage object from DingTalk
             
         Returns:
-            Text content from message or transcribed voice content
+            Text content from message or processed multimedia content
         """
         try:
             # Convert message to dictionary for easier processing
@@ -861,24 +570,357 @@ class MindBotChatbotHandler(ChatbotHandler):
             logger.debug(f"Message type: {message_type}")
             logger.debug(f"Message keys: {list(message_data.keys())}")
             
-            # Check for other message types that we might want to handle
+            # Handle other message types and send to Dify
             if "image" in message_data:
-                logger.info("Image message received (not supported)")
-                return None
+                logger.info("Image message received - processing with Dify")
+                return await self._process_image_message(incoming_message)
             elif "file" in message_data:
-                logger.info("File message received (not supported)")
-                return None
+                logger.info("File message received - processing with Dify")
+                return await self._process_file_message(incoming_message)
             elif "card" in message_data:
-                logger.info("Card message received (not supported)")
-                return None
+                logger.info("Card message received - processing with Dify")
+                return await self._process_card_message(incoming_message)
+            elif "video" in message_data:
+                logger.info("Video message received - processing with Dify")
+                return await self._process_video_message(incoming_message)
+            elif "rich_text" in message_data:
+                logger.info("Rich text message received - processing with Dify")
+                return await self._process_richtext_message(incoming_message)
             
             # This is normal - DingTalk sends various message types
-            logger.debug("No text or voice content found in message (normal for system messages, images, files, etc.)")
+            logger.debug("No processable content found in message (normal for system messages)")
             return None
             
         except Exception as e:
             logger.error(f"Error extracting message content: {str(e)}")
             return None
+    
+    async def _process_image_message(self, incoming_message: ChatbotMessage) -> str:
+        """
+        Process image messages and send to Dify.
+        
+        Args:
+            incoming_message: ChatbotMessage object containing image data
+            
+        Returns:
+            Text description of the image from Dify
+        """
+        try:
+            # Get image list from message
+            images = incoming_message.get_image_list()
+            if not images:
+                logger.warning("No images found in image message")
+                return "I received an image but couldn't process it."
+            
+            # Process each image
+            image_descriptions = []
+            for i, image in enumerate(images):
+                try:
+                    # Get image download URL
+                    image_url = self.get_image_download_url(image)
+                    if not image_url:
+                        logger.warning(f"Could not get download URL for image {i}")
+                        continue
+                    
+                    # Send image to Dify for analysis
+                    logger.info(f"Processing image {i+1}/{len(images)}: {image_url}")
+                    
+                    # Create context for Dify
+                    context = {
+                        "user_id": incoming_message.sender_staff_id,
+                        "conversation_id": incoming_message.conversation_id,
+                        "message_type": "image",
+                        "image_url": image_url,
+                        "session_webhook": incoming_message.session_webhook
+                    }
+                    
+                    # Send to Dify with image context
+                    response = await self.agent_handler(f"Please analyze this image: {image_url}", context)
+                    image_descriptions.append(f"Image {i+1}: {response}")
+                    
+                except Exception as e:
+                    logger.error(f"Error processing image {i}: {e}")
+                    image_descriptions.append(f"Image {i+1}: Error processing image")
+            
+            if image_descriptions:
+                return "\n\n".join(image_descriptions)
+            else:
+                return "I received an image but couldn't process it."
+                
+        except Exception as e:
+            logger.error(f"Error processing image message: {e}")
+            return "I received an image but encountered an error processing it."
+    
+    async def _process_file_message(self, incoming_message: ChatbotMessage) -> str:
+        """
+        Process file messages and send to Dify.
+        
+        Args:
+            incoming_message: ChatbotMessage object containing file data
+            
+        Returns:
+            Text description of the file from Dify
+        """
+        try:
+            # Get file information from message
+            message_data = incoming_message.to_dict()
+            file_data = message_data.get("file", {})
+            
+            if not file_data:
+                logger.warning("No file data found in file message")
+                return "I received a file but couldn't process it."
+            
+            # Extract file information
+            file_name = file_data.get("file_name", "unknown")
+            file_size = file_data.get("file_size", 0)
+            file_type = file_data.get("file_type", "unknown")
+            
+            logger.info(f"Processing file: {file_name} ({file_type}, {file_size} bytes)")
+            
+            # Create context for Dify
+            context = {
+                "user_id": incoming_message.sender_staff_id,
+                "conversation_id": incoming_message.conversation_id,
+                "message_type": "file",
+                "file_name": file_name,
+                "file_size": file_size,
+                "file_type": file_type,
+                "session_webhook": incoming_message.session_webhook
+            }
+            
+            # Send file information to Dify
+            response = await self.agent_handler(f"Please analyze this file: {file_name} (Type: {file_type}, Size: {file_size} bytes)", context)
+            return f"File Analysis: {response}"
+            
+        except Exception as e:
+            logger.error(f"Error processing file message: {e}")
+            return "I received a file but encountered an error processing it."
+    
+    async def _process_video_message(self, incoming_message: ChatbotMessage) -> str:
+        """
+        Process video messages and send to Dify.
+        
+        Args:
+            incoming_message: ChatbotMessage object containing video data
+            
+        Returns:
+            Text description of the video from Dify
+        """
+        try:
+            # Get video information from message
+            message_data = incoming_message.to_dict()
+            video_data = message_data.get("video", {})
+            
+            if not video_data:
+                logger.warning("No video data found in video message")
+                return "I received a video but couldn't process it."
+            
+            # Extract video information
+            video_name = video_data.get("video_name", "unknown")
+            video_size = video_data.get("video_size", 0)
+            video_duration = video_data.get("video_duration", 0)
+            
+            logger.info(f"Processing video: {video_name} (Duration: {video_duration}s, Size: {video_size} bytes)")
+            
+            # Create context for Dify
+            context = {
+                "user_id": incoming_message.sender_staff_id,
+                "conversation_id": incoming_message.conversation_id,
+                "message_type": "video",
+                "video_name": video_name,
+                "video_size": video_size,
+                "video_duration": video_duration,
+                "session_webhook": incoming_message.session_webhook
+            }
+            
+            # Send video information to Dify
+            response = await self.agent_handler(f"Please analyze this video: {video_name} (Duration: {video_duration}s, Size: {video_size} bytes)", context)
+            return f"Video Analysis: {response}"
+            
+        except Exception as e:
+            logger.error(f"Error processing video message: {e}")
+            return "I received a video but encountered an error processing it."
+    
+    async def _process_richtext_message(self, incoming_message: ChatbotMessage) -> str:
+        """
+        Process rich text messages and send to Dify.
+        
+        Args:
+            incoming_message: ChatbotMessage object containing rich text data
+            
+        Returns:
+            Processed rich text content from Dify
+        """
+        try:
+            # Get rich text content from message
+            rich_text_content = incoming_message.rich_text_content
+            if not rich_text_content:
+                logger.warning("No rich text content found in rich text message")
+                return "I received rich text but couldn't process it."
+            
+            logger.info(f"Processing rich text message: {len(rich_text_content)} characters")
+            
+            # Create context for Dify
+            context = {
+                "user_id": incoming_message.sender_staff_id,
+                "conversation_id": incoming_message.conversation_id,
+                "message_type": "rich_text",
+                "rich_text_content": rich_text_content,
+                "session_webhook": incoming_message.session_webhook
+            }
+            
+            # Send rich text to Dify
+            response = await self.agent_handler(f"Please process this rich text content: {rich_text_content}", context)
+            return f"Rich Text Analysis: {response}"
+            
+        except Exception as e:
+            logger.error(f"Error processing rich text message: {e}")
+            return "I received rich text but encountered an error processing it."
+    
+    async def _process_card_message(self, incoming_message: ChatbotMessage) -> str:
+        """
+        Process card messages and send to Dify.
+        
+        Args:
+            incoming_message: ChatbotMessage object containing card data
+            
+        Returns:
+            Processed card content from Dify
+        """
+        try:
+            # Get card information from message
+            message_data = incoming_message.to_dict()
+            card_data = message_data.get("card", {})
+            
+            if not card_data:
+                logger.warning("No card data found in card message")
+                return "I received a card but couldn't process it."
+            
+            # Extract card information
+            card_title = card_data.get("card_title", "unknown")
+            card_content = card_data.get("card_content", "")
+            
+            logger.info(f"Processing card message: {card_title}")
+            
+            # Create context for Dify
+            context = {
+                "user_id": incoming_message.sender_staff_id,
+                "conversation_id": incoming_message.conversation_id,
+                "message_type": "card",
+                "card_title": card_title,
+                "card_content": card_content,
+                "session_webhook": incoming_message.session_webhook
+            }
+            
+            # Send card information to Dify
+            response = await self.agent_handler(f"Please process this card: {card_title} - {card_content}", context)
+            return f"Card Analysis: {response}"
+            
+        except Exception as e:
+            logger.error(f"Error processing card message: {e}")
+            return "I received a card but encountered an error processing it."
+    
+    async def _smart_reply_static(self, response: str, incoming_message: ChatbotMessage) -> None:
+        """
+        Smart message routing for static responses (when streaming is disabled).
+        
+        Detects:
+        - Markdown with images → reply_markdown()
+        - Interactive content → reply_markdown_button()
+        - Complex formatting → reply_markdown_card()
+        - Simple markdown → reply_markdown()
+        - Plain text → reply_text()
+        
+        Args:
+            response: Dify response content
+            incoming_message: ChatbotMessage object for reply
+        """
+        try:
+            # Detect response type and choose appropriate reply method
+            response_type = self._detect_response_type(response)
+            logger.info(f"Detected response type: {response_type}")
+            
+            if response_type == "markdown_with_images":
+                # Markdown with images - use reply_markdown()
+                logger.debug("Using reply_markdown() for markdown with images")
+                self.reply_markdown(response, incoming_message)
+                
+            elif response_type == "interactive_markdown":
+                # Interactive markdown with buttons - use reply_markdown_button()
+                logger.debug("Using reply_markdown_button() for interactive content")
+                self.reply_markdown_button(response, incoming_message)
+                
+            elif response_type == "complex_markdown":
+                # Complex markdown formatting - use reply_markdown_card()
+                logger.debug("Using reply_markdown_card() for complex formatting")
+                self.reply_markdown_card(response, incoming_message)
+                
+            elif response_type == "simple_markdown":
+                # Simple markdown - use reply_markdown()
+                logger.debug("Using reply_markdown() for simple markdown")
+                self.reply_markdown(response, incoming_message)
+                
+            else:
+                # Plain text or unknown - use reply_text()
+                logger.debug("Using reply_text() for plain text")
+                self.reply_text(response, incoming_message)
+                
+        except Exception as e:
+            logger.error(f"Error in smart reply routing: {e}")
+            # Fallback to simple text reply
+            self.reply_text(response, incoming_message)
+    
+    def _detect_response_type(self, response: str) -> str:
+        """
+        Detect the type of Dify response to choose appropriate reply method.
+        
+        Args:
+            response: Dify response content
+            
+        Returns:
+            Response type: "markdown_with_images", "interactive_markdown", 
+                          "complex_markdown", "simple_markdown", "plain_text"
+        """
+        try:
+            # Check for markdown with images (![]() syntax)
+            if "![" in response and "](" in response and ")" in response:
+                logger.debug("Detected markdown with images")
+                return "markdown_with_images"
+            
+            # Check for interactive content (buttons, links)
+            if "[" in response and "](" in response and ")" in response:
+                # Check if it's interactive (multiple links or button-like syntax)
+                link_count = response.count("](")
+                if link_count > 1 or "button" in response.lower() or "click" in response.lower():
+                    logger.debug("Detected interactive markdown")
+                    return "interactive_markdown"
+                else:
+                    logger.debug("Detected simple markdown")
+                    return "simple_markdown"
+            
+            # Check for complex markdown formatting
+            markdown_elements = ["#", "##", "###", "**", "*", "`", "```", ">", "-", "1."]
+            markdown_count = sum(1 for element in markdown_elements if element in response)
+            
+            if markdown_count >= 3:
+                logger.debug("Detected complex markdown formatting")
+                return "complex_markdown"
+            elif markdown_count >= 1:
+                logger.debug("Detected simple markdown")
+                return "simple_markdown"
+            
+            # Check for streaming text patterns
+            if len(response) > 200 or "\n" in response or "..." in response:
+                logger.debug("Detected stream text response")
+                return "stream_text"
+            
+            # Default to plain text
+            logger.debug("Detected plain text")
+            return "plain_text"
+            
+        except Exception as e:
+            logger.error(f"Error detecting response type: {e}")
+            return "plain_text"
     
     def _create_message_hash(self, user_id: str, conversation_id: str, text_content: str) -> str:
         """
@@ -960,13 +1002,21 @@ class MindBotDingTalkClient:
     This class manages WebSocket connection and message routing.
     """
     
-    def __init__(self, agent_handler: Callable, agent_instance=None):
+    def __init__(self, agent_handler: Callable, agent_instance=None, 
+                 client_id: str = None, client_secret: str = None, 
+                 robot_code: str = None, robot_name: str = None, 
+                 card_template_id: str = None):
         """
-        Initialize DingTalk client with agent handler.
+        Initialize DingTalk client with agent handler and credentials.
         
         Args:
             agent_handler: Function to call with processed messages
             agent_instance: Optional agent instance for direct streaming access
+            client_id: DingTalk client ID
+            client_secret: DingTalk client secret
+            robot_code: DingTalk robot code
+            robot_name: DingTalk robot name
+            card_template_id: DingTalk AI card template ID
         """
         self.agent_handler = agent_handler  # AI agent callback
         self.agent_instance = agent_instance  # Agent instance for streaming
@@ -975,13 +1025,20 @@ class MindBotDingTalkClient:
         self.running = False  # Client running state
         self.debug_logger = DebugLogger("DingTalkClient")
         
+        # Store DingTalk credentials
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.robot_code = robot_code
+        self.robot_name = robot_name
+        self.card_template_id = card_template_id
+        
         # Validate required configuration
-        if not DINGTALK_CLIENT_ID:
-            raise ValueError("DINGTALK_CLIENT_ID is not set")
-        if not DINGTALK_CLIENT_SECRET:
-            raise ValueError("DINGTALK_CLIENT_SECRET is not set")
-        if not DINGTALK_ROBOT_CODE:
-            raise ValueError("DINGTALK_ROBOT_CODE is not set")
+        if not self.client_id:
+            raise ValueError("client_id is not set")
+        if not self.client_secret:
+            raise ValueError("client_secret is not set")
+        if not self.robot_code:
+            raise ValueError("robot_code is not set")
         
         logger.info("MindBotDingTalkClient initialized successfully")
     
@@ -995,8 +1052,8 @@ class MindBotDingTalkClient:
             
             # Create credentials for DingTalk API authentication
             credential = Credential(
-                client_id=DINGTALK_CLIENT_ID,
-                client_secret=DINGTALK_CLIENT_SECRET
+                client_id=self.client_id,
+                client_secret=self.client_secret
             )
             
             # Initialize DingTalk Stream client
@@ -1093,8 +1150,8 @@ class MindBotDingTalkClient:
             
             # Create test credentials
             credential = Credential(
-                client_id=DINGTALK_CLIENT_ID,
-                client_secret=DINGTALK_CLIENT_SECRET
+                client_id=self.client_id,
+                client_secret=self.client_secret
             )
             
             # Test client creation

@@ -50,28 +50,60 @@ cd MindBot
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure environment
-cp config/env_example.txt .env
-# Edit .env with your credentials
+# Configure system settings (optional)
+cp env.example .env
+# Edit .env with your system configuration
 
 # Start MindBot
-python start_mindbot.py
+python run.py
+
+# Access web dashboard at http://localhost:9529
+# Configure platform adapters via web interface
 ```
 
-### Environment Configuration
+### Configuration Approach
+
+MindBot uses a **hybrid configuration system**:
+
+- **System Configuration**: Environment variables (`config/.env` file)
+  - Web dashboard settings (host, port, SSL)
+  - Security settings (rate limiting, CORS)
+  - Performance settings (concurrency, timeouts)
+  - Monitoring settings (logging, health checks)
+
+- **Platform Configuration**: Web interface
+  - DingTalk adapters (Client ID, Secret, Robot Code)
+  - WeCom adapters (Corp ID, Secret, Agent ID)
+  - Dify API key and settings
+  - All AI provider configurations
+  - Adapter-specific configurations
+
+### System Configuration (`config/.env`)
 ```bash
-# Required Environment Variables
-DINGTALK_CLIENT_ID=your_dingtalk_client_id
-DINGTALK_CLIENT_SECRET=your_dingtalk_client_secret
-DINGTALK_ROBOT_CODE=your_robot_code
-DIFY_API_KEY=your_dify_api_key
-DIFY_BASE_URL=https://your-dify-instance.com/v1
+# Web Dashboard
+WEB_DASHBOARD_HOST=0.0.0.0
+WEB_DASHBOARD_PORT=9529
+EXTERNAL_IP=your_server_ip
+EXTERNAL_DOMAIN=your_domain.com
 
-# Optional Configuration
-DEBUG_MODE=false
+# Security
+RATE_LIMITING_ENABLED=true
+CORS_ORIGINS=http://localhost:9529,https://your_domain.com
+
+# Performance
+MAX_CONCURRENT_MESSAGES=50
+MESSAGE_TIMEOUT=30.0
+
+# Monitoring
 LOG_LEVEL=INFO
-QWEN_MODEL=qwen3-0.6b
+HEALTH_CHECK_INTERVAL=30
 ```
+
+### Platform Configuration (Web Interface)
+1. Start MindBot: `python run.py`
+2. Open web dashboard: `http://localhost:9529`
+3. Add adapters via "Add Adapter" button
+4. Configure Dify API key via "Edit Dify API Key"
 
 ## 🎮 Usage
 
@@ -105,13 +137,20 @@ Access the modern web dashboard at `http://localhost:9529`:
 - **Real-time Monitoring** - Bot status and performance metrics
 - **Message Testing** - Send test messages to verify functionality
 - **Configuration Management** - View and update settings
-- **Logs Viewer** - Real-time log streaming
+- **Logs Viewer** - Real-time log streaming and management
 - **Health Checks** - Component status monitoring
 
 ### Command Line
 ```bash
 # Start with web dashboard
-python start_mindbot.py
+python run.py
+
+# Manage logs
+python tools/manage_logs.py list          # List all log files
+python tools/manage_logs.py stats         # Show log statistics
+python tools/manage_logs.py tail          # Show recent log entries
+python tools/manage_logs.py clean --days 30  # Clean old logs
+python tools/manage_logs.py compress      # Compress log files
 
 # Run example usage
 python example_usage.py
@@ -148,6 +187,8 @@ Platform Message → PlatformAdapter → EventBus → MessageProcessor → LLM �
 
 ## 📚 Documentation
 
+- **[Configuration Guide](CONFIGURATION_GUIDE.md)** - Complete configuration setup guide
+- **[Web Dashboard Guide](WEB_DASHBOARD_README.md)** - Web interface usage and features
 - **[Implementation Plan](docs/MINDBOT_IMPLEMENTATION_PLAN.md)** - Detailed development roadmap
 - **[Comprehensive Framework](docs/MINDBOT_COMPREHENSIVE_FRAMEWORK.md)** - Technical architecture
 - **[Wiki](docs/WIKI.md)** - Setup guides and troubleshooting
@@ -161,8 +202,15 @@ mindbot_poc/
 ├── mindbot_framework/      # Core framework
 ├── src/                    # Existing DingTalk bot code
 ├── templates/              # Web dashboard templates
+├── tools/                  # Utility scripts
+│   └── manage_logs.py     # Log management tool
+├── logs/                   # Log files directory
+├── config/                 # Configuration files
+│   ├── mindbot_config.json # Main configuration
+│   ├── env_example.txt     # Environment template
+│   └── .env               # Environment variables (create from template)
 ├── docs/                   # Documentation
-├── start_mindbot.py       # Unified startup script
+├── run.py                 # Main startup script
 ├── example_usage.py       # Framework usage example
 └── requirements.txt       # Dependencies
 ```

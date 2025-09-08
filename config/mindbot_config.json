@@ -1,0 +1,143 @@
+{
+  "agent": {
+    "name": "MindBot Multi-Instance",
+    "description": "Multi-platform AI assistant supporting DingTalk and WeCom",
+    "max_concurrent_messages": 50,
+    "message_timeout": 30.0,
+    "ai_provider": "dify",
+    "dify_api_key": "your_dify_api_key_here",
+    "dify_base_url": "https://api.dify.ai/v1",
+    "demo_mode": false
+  },
+  "adapters": {
+    "dingtalk": [
+      {
+        "adapter_id": "dingtalk_main",
+        "type": "dingtalk",
+        "enabled": true,
+        "description": "Main DingTalk production adapter",
+        "config": {
+          "client_id": "dingr6bg0cj9ylmlpuqz",
+          "client_secret": "h2uRQXw2osb5-VhAzCd_fhwXWwTKiitF8pBIb0JuXENwkxnjksYoHtMDqnGwVQmD", 
+          "robot_code": "dingr6bg0cj9ylmlpuqz",
+          "robot_name": "MindBot_poc",
+          "card_template_id": "your_card_template_id",
+          "enable_streaming": true
+        },
+        "settings": {
+          "max_concurrent_messages": 20,
+          "message_timeout": 30.0,
+          "enable_streaming": true,
+          "enable_voice": true,
+          "enable_images": true
+        }
+      },
+      {
+        "adapter_id": "dingtalk_test",
+        "type": "dingtalk",
+        "enabled": false,
+        "description": "DingTalk test environment adapter",
+        "config": {
+          "client_id": "",
+          "client_secret": "",
+          "robot_code": "",
+          "card_template_id": "",
+          "enable_streaming": true
+        },
+        "settings": {
+          "max_concurrent_messages": 10,
+          "message_timeout": 30.0,
+          "enable_streaming": true,
+          "enable_voice": false,
+          "enable_images": false
+        }
+      }
+    ],
+    "wecom": [
+      {
+        "adapter_id": "wecom_main",
+        "type": "wecom",
+        "enabled": true,
+        "description": "Main WeCom production adapter",
+        "config": {
+          "corp_id": "",
+          "corp_secret": "",
+          "agent_id": "",
+          "connection_type": "direct_api"
+        },
+        "settings": {
+          "max_concurrent_messages": 20,
+          "message_timeout": 30.0,
+          "connection_type": "direct_api",
+          "enable_voice": true,
+          "enable_images": true
+        }
+      },
+      {
+        "adapter_id": "wecom_test",
+        "type": "wecom",
+        "enabled": false,
+        "description": "WeCom test environment adapter",
+        "config": {
+          "corp_id": "",
+          "corp_secret": "",
+          "agent_id": "",
+          "connection_type": "direct_api"
+        },
+        "settings": {
+          "max_concurrent_messages": 10,
+          "message_timeout": 30.0,
+          "connection_type": "direct_api",
+          "enable_voice": false,
+          "enable_images": false
+        }
+      }
+    ]
+  },
+  "routing": {
+    "cross_platform_enabled": true,
+    "message_broadcast": false,
+    "adapter_communication": true,
+    "routing_rules": [
+      {
+        "rule_id": "broadcast_important",
+        "enabled": false,
+        "condition": "message contains 'URGENT'",
+        "action": "broadcast_to_all_adapters"
+      },
+      {
+        "rule_id": "route_by_keyword",
+        "enabled": false,
+        "condition": "message contains 'support'",
+        "action": "route_to_adapter",
+        "target_adapter": "dingtalk_main"
+      }
+    ]
+  },
+  "monitoring": {
+    "stats_interval": 60,
+    "health_check_interval": 30,
+    "log_level": "INFO",
+    "enable_metrics": true,
+    "metrics_export_interval": 300,
+    "alert_on_adapter_failure": true,
+    "max_failure_retries": 3
+  },
+  "security": {
+    "enable_webhook_verification": true,
+    "allowed_ips": [],
+    "rate_limiting": {
+      "enabled": true,
+      "max_requests_per_minute": 100,
+      "max_requests_per_hour": 1000
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "log_file": "logs/mindbot.log",
+    "file_rotation": true,
+    "max_file_size": "10MB",
+    "backup_count": 5,
+    "log_format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  }
+}

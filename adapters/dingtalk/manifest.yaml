@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: MessagePlatformAdapter
+metadata:
+  name: dingtalk
+  label:
+    en_US: DingTalk
+    zh_Hans: 钉钉
+  description:
+    en_US: DingTalk Adapter for enterprise messaging
+    zh_Hans: 钉钉企业消息适配器
+  version: "1.0.0"
+  author: "MindBot Team"
+  icon: dingtalk.svg
+spec:
+  config:
+    - name: client_id
+      label:
+        en_US: Client ID
+        zh_Hans: 客户端ID
+      type: string
+      required: true
+      default: ""
+      description: "DingTalk application client ID"
+    - name: client_secret
+      label:
+        en_US: Client Secret
+        zh_Hans: 客户端密钥
+      type: string
+      required: true
+      default: ""
+      description: "DingTalk application client secret"
+    - name: robot_code
+      label:
+        en_US: Robot Code
+        zh_Hans: 机器人代码
+      type: string
+      required: true
+      default: ""
+      description: "DingTalk robot code"
+    - name: card_template_id
+      label:
+        en_US: Card Template ID
+        zh_Hans: 卡片模板ID
+      type: string
+      required: false
+      default: ""
+      description: "DingTalk card template ID for AI cards"
+    - name: enable_streaming
+      label:
+        en_US: Enable Streaming
+        zh_Hans: 启用流式回复
+      type: boolean
+      required: false
+      default: true
+      description: "Enable streaming AI card responses"
+  capabilities:
+    - "text_messages"
+    - "image_messages"
+    - "voice_messages"
+    - "file_messages"
+    - "rich_text_messages"
+    - "ai_cards"
+    - "streaming_responses"
+  platform_type: "dingtalk"
+execution:
+  python_path: "src.adapters.dingtalk_adapter"
+  class_name: "DingTalkAdapter"

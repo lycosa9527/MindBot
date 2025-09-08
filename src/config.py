@@ -8,8 +8,8 @@ import os
 import logging
 from dotenv import load_dotenv
 
-# Load environment variables from .env file automatically
-load_dotenv()
+# Load environment variables from .env file
+load_dotenv(".env")
 
 # Version Information for the application
 VERSION = "v0.4.2"
