@@ -3,7 +3,7 @@
 ## v0.5.2 (2025-01-31) - Configuration Cleanup & TypeScript Fixes
 
 ### 🧹 Configuration Cleanup / 配置清理
-- **Unified Environment Files** - Removed redundant `config/env_example.txt`, now using single `env.example` in root
+- **Unified Environment Files** - Removed redundant `config/env_example.txt`, now using single `config/env.example`
 - **Updated Documentation** - README.md now references correct environment file location
 - **Simplified Configuration Loading** - `src/config.py` now loads from root `.env` file
 - **Cleaner Project Structure** - Eliminated confusing duplicate configuration files

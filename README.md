@@ -51,7 +51,7 @@ cd MindBot
 pip install -r requirements.txt
 
 # Configure system settings (optional)
-cp env.example .env
+cp config/env.example .env
 # Edit .env with your system configuration
 
 # Start MindBot
